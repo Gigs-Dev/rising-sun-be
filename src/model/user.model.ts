@@ -1,11 +1,21 @@
-import mongoose, { model, Schema } from "mongoose";
+import mongoose, { model, Schema, Types } from "mongoose";
 
-const UserSchema = new Schema({
+interface IUser {
+    _id: Types.ObjectId;
+    email: string;
+    referee?: string;
+    referalId?: string;
+    referals?: [];
+    createdAt?: Date;
+}
+
+const UserSchema = new Schema<IUser>({
     email: {
         type: String,
         required: true,
         unique: true
     },
+    referee: String,
     referalId: {
         type: String,
         required: true,

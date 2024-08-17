@@ -1,13 +1,14 @@
 import mongoose from "mongoose";
-
+import dotenv from 'dotenv';
 const { set, connect, connection } = mongoose;
 
+dotenv.config();
 
 const connectDB = () => {
 
     set('strictQuery', true);
 
-    const DB_URI = process.env.DB_URI || 'mongodb://localhost:27017/risingsun';
+    const DB_URI = process.env.DB_URI;
 
     if (!DB_URI) {
         throw new Error('DB_URI is not defined in the environment variables');
@@ -36,3 +37,6 @@ const connectDB = () => {
 }
 
 export default connectDB;
+
+
+// 'mongodb://localhost:27017/risingsun'
