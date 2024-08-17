@@ -5,9 +5,22 @@ const { set, connect, connection } = mongoose;
 
 const connectDB = () => {
 
-    set('strictQuery', true)
+    set('strictQuery', true);
 
-    connect('mongodb://localhost:27017/risingsun')
+    const DB_URI = process.env.DB_URI || 'mongodb://localhost:27017/risingsun';
+
+    if (!DB_URI) {
+        throw new Error('DB_URI is not defined in the environment variables');
+    }
+
+    connect(DB_URI)
+        .then(() => {
+            console.log('DB connection successful!');
+        })
+        .catch((err) => {
+            console.error('DB connection error:', err.message);
+        });
+
 
     connection.on('connected', () => {
         console.log('DB connection successful!')
