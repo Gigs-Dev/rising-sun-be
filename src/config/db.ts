@@ -1,13 +1,27 @@
 import mongoose from "mongoose";
-
+import dotenv from 'dotenv';
 const { set, connect, connection } = mongoose;
 
+dotenv.config();
 
 const connectDB = () => {
 
-    set('strictQuery', true)
+    set('strictQuery', true);
 
-    connect('mongodb://localhost:27017/risingsun')
+    const DB_URI = process.env.DB_URI;
+
+    if (!DB_URI) {
+        throw new Error('DB_URI is not defined in the environment variables');
+    }
+
+    connect(DB_URI)
+        .then(() => {
+            console.log('DB connection successful!');
+        })
+        .catch((err) => {
+            console.error('DB connection error:', err.message);
+        });
+
 
     connection.on('connected', () => {
         console.log('DB connection successful!')
@@ -23,3 +37,6 @@ const connectDB = () => {
 }
 
 export default connectDB;
+
+
+// 'mongodb://localhost:27017/risingsun'
