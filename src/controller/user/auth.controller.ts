@@ -15,6 +15,7 @@ const sendOtp = async (req: Request, res: Response) => {
         res.status(200).json({ otp: otp });
     } catch (error) {
          handle500Errors(error, res)
+
     }
 }
 
@@ -23,11 +24,13 @@ const sendOtp = async (req: Request, res: Response) => {
 const newUser = async (req: Request, res: Response) => {
 
     try {
+
         const { email, inputCode } = req.body;
         
         const isOtpValid = verifyOtp(inputCode, email);
 
         if (!isOtpValid) return res.status(403).json({ message: 'Otp not valid or has expired' })
+
 
         const generatedId = await generateAcctID();
         const generatedReferalId = await generateReferalId(email);
@@ -58,3 +61,4 @@ const login = async (req: Request, res: Response) => {
 
 
 export { login, newUser, sendOtp }
+
