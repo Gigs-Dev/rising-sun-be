@@ -10,23 +10,11 @@ import { generateAcctID, generateReferalId } from "../../services/auth/generateI
 const sendOtp = async (req: Request, res: Response) => {
     try {
         const { email } = req.body;
-
         const otp = await requestOtp(email);
-        res.status(200).send({ otp: otp })
+
+        res.status(200).json({ otp: otp });
     } catch (error) {
-        handle500Errors(error, res);
-    }
-}
-
-
-
-const verifyEmail = async (req: Request, res: Response) => {
-    try {
-        const { email, input } = req.body;
-
-
-    } catch (error) {
-        handle500Errors(error, res);
+         handle500Errors(error, res)
     }
 }
 
@@ -35,7 +23,11 @@ const verifyEmail = async (req: Request, res: Response) => {
 const newUser = async (req: Request, res: Response) => {
 
     try {
-        const { email } = req.body;
+        const { email, inputCode } = req.body;
+        
+        const isOtpValid = verifyOtp(inputCode, email);
+
+        if (!isOtpValid) return res.status(403).json({ message: 'Otp not valid or has expired' })
 
         const generatedId = await generateAcctID();
         const generatedReferalId = await generateReferalId(email);
@@ -57,8 +49,12 @@ const newUser = async (req: Request, res: Response) => {
 
 
 const login = async (req: Request, res: Response) => {
-
+    try {
+        
+    } catch (error) {
+        handle500Errors(error, res)
+    }
 }
 
 
-export { login, newUser, sendOtp, verifyEmail }
+export { login, newUser, sendOtp }
