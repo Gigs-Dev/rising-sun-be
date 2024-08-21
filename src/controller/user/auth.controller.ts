@@ -6,16 +6,36 @@ import { verifyOtp } from "../../services/auth/verifyOtp";
 import { generateAcctID, generateReferalId } from "../../services/auth/generateId";
 
 
-const register = async (req: Request, res: Response) => {
 
+const sendOtp = async (req: Request, res: Response) => {
     try {
-        const { email, inputCode } = req.body;
+        const { email } = req.body;
 
         const otp = await requestOtp(email);
-        
-        const isOtpValid = verifyOtp(otp, inputCode);
+        res.status(200).send({ otp: otp })
+    } catch (error) {
+        handle500Errors(error, res);
+    }
+}
 
-        if (!isOtpValid) return res.status(403).json({ message: 'Otp not valid or has expired' })
+
+
+const verifyEmail = async (req: Request, res: Response) => {
+    try {
+        const { email, input } = req.body;
+
+
+    } catch (error) {
+        handle500Errors(error, res);
+    }
+}
+
+
+
+const newUser = async (req: Request, res: Response) => {
+
+    try {
+        const { email } = req.body;
 
         const generatedId = await generateAcctID();
         const generatedReferalId = await generateReferalId(email);
@@ -41,4 +61,4 @@ const login = async (req: Request, res: Response) => {
 }
 
 
-export { login, register }
+export { login, newUser, sendOtp, verifyEmail }
