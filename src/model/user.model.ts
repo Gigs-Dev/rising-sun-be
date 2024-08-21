@@ -2,6 +2,7 @@ import mongoose, { model, Schema, Types } from "mongoose";
 
 interface IUser {
     _id: Types.ObjectId;
+    acctId: string;
     email: string;
     referee?: string;
     referalId?: string;
@@ -13,6 +14,10 @@ const UserSchema = new Schema<IUser>({
     email: {
         type: String,
         required: true,
+        unique: true
+    },
+    acctId: {
+        type: String,
         unique: true
     },
     referee: String,

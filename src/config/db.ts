@@ -19,9 +19,8 @@ const connectDB = () => {
             console.log('DB connection successful!');
         })
         .catch((err) => {
-            console.error('DB connection error:', err.message);
+            console.error('Could not establish a connection', err.message);
         });
-
 
     connection.on('connected', () => {
         console.log('DB connection successful!')
