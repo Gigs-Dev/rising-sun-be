@@ -27,7 +27,7 @@ const newUser = async (req: Request, res: Response) => {
 
         const { email, inputCode, refereeId } = req.body;
         
-        const isOtpValid = verifyOtp(inputCode, email);
+        const isOtpValid = await verifyOtp(inputCode, email);
 
         if (!isOtpValid) return res.status(403).json({ message: 'Otp not valid or has expired' })
 
@@ -37,6 +37,7 @@ const newUser = async (req: Request, res: Response) => {
 
         const newUser = await User.create({
             ...req.body,
+            acctType: 'real',
             acctId: generatedId,
             referalId: generatedReferalId,
         })

@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import { generateRandomOTP } from "../../util/util-gen";
-
+import { OtpModel } from '../../model/otp.model';
 
 interface Otp {
     code: string;
@@ -33,6 +33,13 @@ export async function requestOtp(user: { email: string }): Promise<Otp> {
     try {
         await transporter.sendMail(mailOptions);
         console.log(`OTP sent to ${email}`);
+
+        await OtpModel.create({
+            email,
+            code: otp,
+            expiresAt,
+        });
+
         return { code: otp, expiresAt }; 
     } catch (error) {
         console.error('Error sending email:', error);
