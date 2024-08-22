@@ -16,7 +16,7 @@ export const createPost = async (req: Request, res: Response) => {
 
 export const getPosts = async (req: Request, res: Response) => {
     try {
-        const posts = await Posts.find();
+        const posts = await Posts.find().sort({ _id: -1 });
 
         res.status(200).json(posts);
     } catch (error) {
