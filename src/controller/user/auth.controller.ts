@@ -10,7 +10,7 @@ import { generateAcctID, generateReferalId } from "../../services/auth/generateI
 const sendOtp = async (req: Request, res: Response) => {
     try {
         const { email } = req.body;
-        const otp = await requestOtp(email);
+        const otp = await requestOtp({ email });
 
         res.status(200).json({ otp: otp });
     } catch (error) {
@@ -25,7 +25,7 @@ const newUser = async (req: Request, res: Response) => {
 
     try {
 
-        const { email, inputCode } = req.body;
+        const { email, inputCode, refereeId } = req.body;
         
         const isOtpValid = verifyOtp(inputCode, email);
 
@@ -40,6 +40,13 @@ const newUser = async (req: Request, res: Response) => {
             acctId: generatedId,
             referalId: generatedReferalId,
         })
+
+        if (refereeId) {
+            await User.updateOne(
+                { referalId: refereeId },
+                { $push: { referals: newUser._id } }
+            );
+        }
         
         return res.status(201).json({ user: newUser });
         

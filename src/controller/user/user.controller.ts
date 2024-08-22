@@ -28,6 +28,6 @@ export const creditReferer = async (req: Request, res: Response) => {
     try {
         
     } catch (error) {
-        
+        handle500Errors(error, res)
     }
 }
