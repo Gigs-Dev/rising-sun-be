@@ -13,7 +13,7 @@ export async function requestOtp(user: { email: string }): Promise<Otp> {
 
     const otp = generateRandomOTP().toString();
 
-    const expiresAt = new Date(Date.now() + 2 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + 20 * 60 * 1000);
 
     const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -27,7 +27,7 @@ export async function requestOtp(user: { email: string }): Promise<Otp> {
         from:  process.env.EMAIL_USER, 
         to: email,
         subject: 'Rising Sun Inc',
-        text: `Your One Time Password is ${otp}, it will expire in 2 mins`,
+        text: `Your One Time Password is ${otp}, it will expire in 20 mins`,
     };
 
     try {
