@@ -4,10 +4,11 @@ interface IUser {
     _id: Types.ObjectId;
     acctId: string;
     email: string;
-    referee?: string;
+    refereeId?: string;
     referalId?: string;
     referals?: [];
     createdAt?: Date;
+    acctType: string;
 }
 
 const UserSchema = new Schema<IUser>({
@@ -20,11 +21,18 @@ const UserSchema = new Schema<IUser>({
         type: String,
         unique: true
     },
-    referee: String,
+    refereeId: {
+        type:String
+    },
     referalId: {
         type: String,
         required: true,
         unique: true
+    },
+    acctType: {
+        type: String,
+        required: true,
+        enum: ['real', 'demo'],
     },
     referals: {
         type: Array,
