@@ -5,12 +5,16 @@ interface IUser extends Document {
     _id: Types.ObjectId;
     acctId: string;
     email: string;
-    refereeId?: string;
+    referalCode?: string;
     referalId?: string;
     referals?: [];
     createdAt?: Date;
     acctType: string;
-    acctBal: number
+    acctBal: number;
+    isAdmin: boolean;
+    _doc: {
+        isAdmin: boolean;
+    };
 }
 
 const UserSchema = new Schema<IUser>({
@@ -23,7 +27,7 @@ const UserSchema = new Schema<IUser>({
         type: String,
         unique: true
     },
-    refereeId: {
+    referalCode: {
         type:String
     },
     referalId: {
@@ -44,6 +48,10 @@ const UserSchema = new Schema<IUser>({
     referals: {
         type: Array,
         default: []
+    },
+    isAdmin: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true })
 

@@ -4,6 +4,8 @@ import { requestOtp } from "../../services/auth/requestOtp";
 import { handle500Errors } from "../../util/api-response";
 import { verifyOtp } from "../../services/auth/verifyOtp";
 import { generateAcctID, generateReferalId } from "../../services/auth/generateId";
+import jwt from 'jsonwebtoken';
+
 
 
 
@@ -25,7 +27,7 @@ const newUser = async (req: Request, res: Response) => {
 
     try {
 
-        const { email, inputCode, refereeId } = req.body;
+        const { email, inputCode, referalCode } = req.body;
         
         const isOtpValid = await verifyOtp(email, inputCode);
 
@@ -45,16 +47,25 @@ const newUser = async (req: Request, res: Response) => {
                 referalId: generatedReferalId,
             })
     
-            if (refereeId) {
+            if (referalCode) {
                 await User.updateOne(
-                    { referalId: refereeId },
+                    { referalCode: referalCode },
                     { $push: { referals: newUser._id } }
                 );
             }
+
+            const accessToken = jwt.sign({ email: newUser.email, id: newUser._id, isAdmin: newUser.isAdmin }, 'jwtkey', { expiresIn: '1month' });
+
+            const { isAdmin, ...userDetails } = newUser._doc;
             
-            return res.status(201).json({ user: newUser });
+            return res.status(201).json({ user: userDetails, accessToken });
         } else {
-            return res.status(200).json({ user: user })
+
+            const accessToken = jwt.sign({email: user.email, id: user._id}, 'jwtkey', {expiresIn: '1month'});
+
+            const { isAdmin, ...userDetails } = user._doc;
+
+            return res.status(200).json({ user: userDetails, accessToken });
         }
         
     } catch (error) {
