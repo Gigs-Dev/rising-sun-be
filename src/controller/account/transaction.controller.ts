@@ -4,7 +4,18 @@ import User from "../../model/user.model";
 import { handle500Errors } from "../../util/api-response";
 
 
-export const creditAccount = async (req:Request, res: Response) => {
+export const creditAccount = async (req:Request, res: Response): Promise<void> => {
+    try {
+        const { userId, amount } = req.body;
+        
+        // const paymentRef = await 
+    } catch (error) {
+        handle500Errors(error, res)
+    }
+}
+
+
+export const verifyCredit = async (req:Request, res: Response): Promise<void>=> {
     try {
         
     } catch (error) {
@@ -13,7 +24,7 @@ export const creditAccount = async (req:Request, res: Response) => {
 }
 
 
-export const verifyCredit = async (req:Request, res: Response) => {
+export const debitAccount = async (req:Request, res: Response): Promise<void> => {
     try {
         
     } catch (error) {
@@ -22,16 +33,7 @@ export const verifyCredit = async (req:Request, res: Response) => {
 }
 
 
-export const debitAccount = async (req:Request, res: Response) => {
-    try {
-        
-    } catch (error) {
-        handle500Errors(error, res)
-    }
-}
-
-
-export const verifyDebit = async (req:Request, res: Response) => {
+export const verifyDebit = async (req:Request, res: Response): Promise<void> => {
     try {
         
     } catch (error) {

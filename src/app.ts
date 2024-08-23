@@ -6,13 +6,14 @@ import userRoute from './routes/user/user.route';
 import postRoute from './routes/post/post.route';
 import accountRoute from './routes/account/account.route';
 import tradeRoute from './routes/trade/trade.route';
+import compression from "compression";
 
 
 
 const app: Express = express();
 
 
-
+app.use(compression());
 app.use(json());
 app.use(urlencoded({extended: true} ));
 app.use(cors())
