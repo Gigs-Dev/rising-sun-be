@@ -9,9 +9,9 @@ const TradeSchema = new Schema({
         type: String,
         enum: ['win', 'lost', 'neutral']
     },
-    tradeId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Acount'
+    userId: {
+        type: Types.ObjectId,
+        ref: 'User'
     }
 
 }, {timestamps: true}

@@ -1,24 +1,47 @@
-import mongoose, { model, Schema } from "mongoose";
+import mongoose, { model, Schema, Types } from "mongoose";
+
+interface IAccount extends Document {
+    userId: mongoose.Types.ObjectId;
+    amount: number;
+    type: 'credit' | 'debit';
+    status: 'pending' | 'successful' | 'failed';
+    flutterwaveRef: string;
+    createdAt: Date;
+  }
+  
 
 const AccountSchema = new Schema({
-    accountId: {
-        type: String,
+    userId: {
+        type: Types.ObjectId,
         required: true,
-        unique: true
+        unique: true,
+        ref: 'User'
     },
-    acctType: {
-        type: String,
-        required: true,
-        enum: ['real', 'demo'],
+    amount: { 
+        type: Number, 
+        required: true 
     },
-    acctBal: {
-        type: Number,
-        required: true,
-    }
+    type: { 
+        type: String, 
+        enum: ['credit', 'debit'], 
+        required: true 
+    },
+    status: { 
+        type: String, 
+        enum: ['idle', 'pending', 'successful', 'failed'], 
+        default: 'idle' 
+    },
+    flutterwaveRef: { 
+        type: String, 
+        required: true 
+    },
+    createdAt: { 
+        type: Date,
+        default: Date.now
+    },
     
-}, {timestamps: true}
-)
+})
 
 
-const Account = model('Account', AccountSchema);
+const Account = model<IAccount>('Account', AccountSchema);
 export default Account;
