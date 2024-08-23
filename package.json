@@ -5,9 +5,8 @@
   "scripts": {
     "dev": "tsnd --respawn src/app.ts",
     "build": "rimraf ./dist && tsc -p .",
-    "start-prod": "node dist/app.js",
-    "copy-files": "node ./src/scripts/copy-files.js",
-    "start": "npm run build && npm start-prod"
+    "start-prod": "node src/app.js",
+    "start": "npm run build && npm run start-prod"
   },
   "keywords": [],
   "author": "",
