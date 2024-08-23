@@ -1,6 +1,7 @@
-import mongoose, { model, Schema, Types } from "mongoose";
+import mongoose, { Document, model, Schema, Types } from "mongoose";
 
-interface IUser {
+
+interface IUser extends Document {
     _id: Types.ObjectId;
     acctId: string;
     email: string;
@@ -9,6 +10,7 @@ interface IUser {
     referals?: [];
     createdAt?: Date;
     acctType: string;
+    acctBal: number
 }
 
 const UserSchema = new Schema<IUser>({
@@ -33,6 +35,11 @@ const UserSchema = new Schema<IUser>({
         type: String,
         required: true,
         enum: ['real', 'demo'],
+    },
+    acctBal: {
+        type: Number,
+        required: true,
+        default: 0
     },
     referals: {
         type: Array,

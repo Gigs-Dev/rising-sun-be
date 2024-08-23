@@ -1,4 +1,11 @@
-import mongoose, { model, Schema, Types } from "mongoose";
+import mongoose, { Document, model, Schema, Types } from "mongoose";
+
+interface ITrade extends Document {
+    account: number;
+    outcome: 'win' | 'loss' | 'neutral';
+    userId: Types.ObjectId;
+    createdAt?: Date
+}
 
 const TradeSchema = new Schema({
     amount: {
@@ -9,14 +16,14 @@ const TradeSchema = new Schema({
         type: String,
         enum: ['win', 'lost', 'neutral']
     },
-    tradeId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Acount'
+    userId: {
+        type: Types.ObjectId,
+        ref: 'User'
     }
-
+    
 }, {timestamps: true}
 )
 
 
-const Trade = model('Trade', TradeSchema);
+const Trade = model<ITrade>('Trade', TradeSchema);
 export default Trade;
