@@ -4,7 +4,7 @@ interface IAccount extends Document {
     userId: mongoose.Types.ObjectId;
     amount: number;
     type: 'credit' | 'debit';
-    status: 'pending' | 'successful' | 'failed';
+    status: 'idle' | 'pending' | 'successful' | 'failed';
     flutterwaveRef: string;
     createdAt: Date;
   }
