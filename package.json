@@ -7,7 +7,7 @@
     "build": "rimraf ./dist && tsc -p .",
     "start-prod": "node dist/app.js",
     "copy-files": "node ./src/scripts/copy-files.js",
-    "start": "yarn run build && yarn run copy-files && yarn start-prod"
+    "start": "npm run build && npm start-prod"
   },
   "keywords": [],
   "author": "",
