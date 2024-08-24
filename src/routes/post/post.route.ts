@@ -1,16 +1,17 @@
 import { Router } from "express";
 
 import { createPost, getPosts, deletePost, getSinglePost } from "../../controller/post/post.controller";
+import { verifyUser, verifyTokenAndAdmin } from "../../util/verifyJwt";
 
 
 const router = Router();
 
-router.get('/', getPosts);
+router.get('/', verifyUser, getPosts);
 
-router.get('/:id', getSinglePost);
+router.get('/:id', verifyUser, getSinglePost);
 
-router.post('/create', createPost);
+router.post('/create', verifyTokenAndAdmin,  createPost);
 
-router.delete('/:id', deletePost);
+router.delete('/:id', verifyTokenAndAdmin,  deletePost);
 
 export default router;

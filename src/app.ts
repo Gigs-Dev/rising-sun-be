@@ -18,6 +18,13 @@ app.use(json());
 app.use(urlencoded({extended: true} ));
 app.use(cors())
 
+
+//testing route
+app.use('/testurl', (req, res) => {
+    res.send('Conected to client');
+})
+
+
 //routes use 
 app.use('/api/auth', authRoute);
 app.use('/api/user', userRoute);

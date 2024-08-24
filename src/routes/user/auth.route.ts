@@ -4,8 +4,8 @@ import { sendOtp, newUser, login } from '../../controller/user/auth.controller';
 
 const router = Router()
 
-router.post('/sendotp', sendOtp);
-router.post('/createnewsession', newUser);
+router.route('/sendotp').post(sendOtp);
+router.route('/createnewsession').post(newUser);
 router.post('/session', login);
 
 
