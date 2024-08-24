@@ -1,11 +1,12 @@
 import { Router } from "express";
 
 import { getReferals, creditReferer } from "../../controller/user/user.controller";
+import { verifyUser } from "../../util/verifyJwt";
 
 
 const router = Router();
 
-router.get('/referrals/:referalId', getReferals);
+router.route('/referrals/:referalId').get(verifyUser, getReferals);
 
 router.patch('/', creditReferer);
 
