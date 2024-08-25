@@ -24,11 +24,10 @@ const sendOtp = async (req: Request, res: Response) => {
 
 
 const newUser = async (req: Request, res: Response) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
 
-    const { email, inputCode, referalCode } = req.body;
     try {
+
+        const { email, inputCode, referalCode } = req.body;
         
         const isOtpValid = await verifyOtp(email, inputCode);
 
@@ -49,23 +48,20 @@ const newUser = async (req: Request, res: Response) => {
             })
     
             if (referalCode) {
-            const referringUser = await User.findOne({ referalId: referalCode });
-
-            if(!referringUser) return res.status(400).json({ msg: 'Invalid referal code' });
-                await referringUser.updateOne(
-                    { referalId: referalCode },
+                await User.updateOne(
+                    { referalCode: referalCode },
                     { $push: { referals: newUser._id } }
                 );
             }
 
-            const accessToken = jwt.sign({ email: newUser.email, id: newUser._id, isAdmin: newUser.isAdmin }, 'jwtkey', { expiresIn: '15d' });
+            const accessToken = jwt.sign({ email: newUser.email, id: newUser._id, isAdmin: newUser.isAdmin }, 'jwtkey', { expiresIn: '1month' });
 
             const { isAdmin, ...userDetails } = newUser._doc;
             
             return res.status(201).json({ user: userDetails, accessToken });
         } else {
 
-            const accessToken = jwt.sign({email: user.email, id: user._id}, 'jwtkey', {expiresIn: '30d'});
+            const accessToken = jwt.sign({email: user.email, id: user._id}, 'jwtkey', {expiresIn: '7d'});
 
             const { isAdmin, ...userDetails } = user._doc;
 
@@ -73,15 +69,13 @@ const newUser = async (req: Request, res: Response) => {
         }
         
     } catch (error: any) {
-        await session.abortTransaction();
-       res.status(500).json(error.message);
-        
-    } finally {
-        session.endSession();
-        await deleteOtp(email);
+        res.status(500).json(error.message);
+        // handle500Errors(error, res)
     }
     
 }
+
+
 
 
 
