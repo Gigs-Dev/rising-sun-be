@@ -20,9 +20,6 @@ app.use(cors())
 
 
 //testing route
-app.use('/testurl', (req, res) => {
-    res.send('Conected to client');
-})
 
 
 //routes use 
@@ -32,6 +29,9 @@ app.use('/api/post', postRoute);
 app.use('/api/account', accountRoute);
 app.use('/api/trade', tradeRoute);
 
+// app.use('/', (req, res) => {
+//     res.send('Conected to client');
+// })
 const PORT = 8800;
 
 app.listen(PORT, () => {

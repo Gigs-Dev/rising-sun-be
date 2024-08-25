@@ -47,3 +47,13 @@ export async function requestOtp(user: { email: string }): Promise<Otp> {
     }
 
 }  
+
+
+export const deleteOtp = async (email: string) => {
+    try {
+        await OtpModel.deleteOne({ email });
+    } catch (error) {
+        console.error("Failed to delete OTP:", error);
+        // Optionally handle the error or log it
+    }
+};

@@ -1,6 +1,6 @@
 import User from "../../model/user.model";
 import { Response, Request } from "express"
-import { requestOtp } from "../../services/auth/requestOtp";
+import { requestOtp, deleteOtp } from "../../services/auth/requestOtp";
 import { handle500Errors } from "../../util/api-response";
 import { verifyOtp } from "../../services/auth/verifyOtp";
 import { generateAcctID, generateReferalId } from "../../services/auth/generateId";
@@ -25,9 +25,9 @@ const sendOtp = async (req: Request, res: Response) => {
 
 const newUser = async (req: Request, res: Response) => {
 
+    const { email, inputCode, referalCode } = req.body;
     try {
 
-        const { email, inputCode, referalCode } = req.body;
         
         const isOtpValid = await verifyOtp(email, inputCode);
 
@@ -39,40 +39,54 @@ const newUser = async (req: Request, res: Response) => {
 
             const generatedId = await generateAcctID();
             const generatedReferalId = await generateReferalId(email);
-    
+
+            let referringUser;
+            if (referalCode) {
+                referringUser = await User.findOne({ referalId: referalCode });
+
+                if (!referringUser) {
+                    return res.status(400).json({ msg: 'Invalid referral code' });
+                }
+
+            }
+
             const newUser = await User.create({
                 ...req.body,
                 acctType: 'real',
                 acctId: generatedId,
                 referalId: generatedReferalId,
+                referalCode: referringUser ? referringUser.referalId : null,
             })
-    
-            if (referalCode) {
-                await User.updateOne(
-                    { referalCode: referalCode },
-                    { $push: { referals: newUser._id } }
-                );
-            }
 
-            const accessToken = jwt.sign({ email: newUser.email, id: newUser._id, isAdmin: newUser.isAdmin }, 'jwtkey', { expiresIn: '1month' });
+            await referringUser?.updateOne(
+                { $push: { referals: newUser._id } }
+            );
+
+
+            const accessToken = jwt.sign({ email: newUser.email, id: newUser._id, isAdmin: newUser.isAdmin }, 'jwtkey', { expiresIn: '7d' });
 
             const { isAdmin, ...userDetails } = newUser._doc;
             
             return res.status(201).json({ user: userDetails, accessToken });
         } else {
 
-            const accessToken = jwt.sign({email: user.email, id: user._id}, 'jwtkey', {expiresIn: '1month'});
+            const accessToken = jwt.sign({email: user.email, id: user._id}, 'jwtkey', {expiresIn: '7d'});
 
             const { isAdmin, ...userDetails } = user._doc;
 
             return res.status(200).json({ user: userDetails, accessToken });
         }
         
-    } catch (error) {
-        handle500Errors(error, res)
+    } catch (error: any) {
+        handle500Errors(error, res);
+        
+    } finally {
+        await deleteOtp(email);
     }
     
 }
+
+
 
 
 
