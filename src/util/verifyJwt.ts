@@ -46,7 +46,7 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
 
 export const verifyUser = async (req: Request, res: Response, next: NextFunction) => {
     verifyToken(req, res, () => {
-        if(req.userId === req.params.id || req.user?.isAdmin){
+        if(req.user?.id === req.params.id || req.user?.isAdmin){
             next()
         } else {
             res.status(403).json('Action not allowed')
@@ -58,7 +58,7 @@ export const verifyUser = async (req: Request, res: Response, next: NextFunction
 
 export const verifyTokenAndAdmin = async (req: Request, res: Response, next: NextFunction) => {
     verifyToken(req, res, () => {
-        if(req.user?.isAdmin){
+        if(req.user?.id === req.params.id && req.user?.isAdmin){
             next();
         } else {
             res.status(403).json('Action not allowed')

@@ -33,7 +33,7 @@ const newUser = async (req: Request, res: Response) => {
 
         if (!isOtpValid) return res.status(403).json({ message: 'Otp not valid or has expired' })
 
-        const user = await User.findOne({ email });
+        let user = await User.findOne({ email });
 
         if(!user){
 
@@ -50,7 +50,7 @@ const newUser = async (req: Request, res: Response) => {
 
             }
 
-            const newUser = await User.create({
+            user = new User({
                 ...req.body,
                 acctType: 'real',
                 acctId: generatedId,
@@ -58,19 +58,20 @@ const newUser = async (req: Request, res: Response) => {
                 referalCode: referringUser ? referringUser.referalId : null,
             })
 
+            await user.save();
+
             await referringUser?.updateOne(
-                { $push: { referals: newUser._id } }
+                { $push: { referals: user._id } }
             );
 
+            const accessToken = jwt.sign({ email: user.email, id: user._id, isAdmin: user.isAdmin }, 'jwtkey', { expiresIn: '7d' });
 
-            const accessToken = jwt.sign({ email: newUser.email, id: newUser._id, isAdmin: newUser.isAdmin }, 'jwtkey', { expiresIn: '7d' });
-
-            const { isAdmin, ...userDetails } = newUser._doc;
+            const { isAdmin, ...userDetails } = user._doc;
             
             return res.status(201).json({ user: userDetails, accessToken });
         } else {
 
-            const accessToken = jwt.sign({email: user.email, id: user._id}, 'jwtkey', {expiresIn: '7d'});
+            const accessToken = jwt.sign({email: user.email, id: user._id, isAdmin: user.isAdmin}, 'jwtkey', {expiresIn: '7d'});
 
             const { isAdmin, ...userDetails } = user._doc;
 
