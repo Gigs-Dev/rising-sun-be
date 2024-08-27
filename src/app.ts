@@ -7,12 +7,13 @@ import postRoute from './routes/post/post.route';
 import accountRoute from './routes/account/account.route';
 import tradeRoute from './routes/trade/trade.route';
 import compression from "compression";
+import helmet from 'helmet';
 
 
 
 const app: Express = express();
 
-
+app.use(helmet());
 app.use(compression());
 app.use(json());
 app.use(urlencoded({extended: true} ));
