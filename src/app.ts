@@ -25,6 +25,10 @@ app.use(cors())
 
 
 //routes use 
+app.use('/r', (req, res) => {
+    res.send('Conected to client');
+})
+
 app.use('/api/auth', authRoute);
 app.use('/api/user', userRoute);
 app.use('/api/post', postRoute);
@@ -32,9 +36,7 @@ app.use('/api/account', accountRoute);
 app.use('/api/trade', tradeRoute);
 app.use('/api/transaction', transactionRoute);
 
-// app.use('/', (req, res) => {
-//     res.send('Conected to client');
-// })
+
 const PORT = 8800;
 
 app.listen(PORT, () => {
