@@ -106,7 +106,7 @@ export const withdrawal = async (req: Request, res: Response) => {
 
            await Promise.all([user.save(), transaction.save()]);
 
-           return res.status(200).json({user: user, transaction: transaction})
+           return res.status(200).json({user: user, msg: 'Transaction successful!'})
         } else {
             return res.status(400).json({ msg: 'Withdrawal failed, please try again later', error: response.message });
         }

@@ -14,7 +14,7 @@ const sendOtp = async (req: Request, res: Response) => {
         const { email } = req.body;
         const otp = await requestOtp({ email });
 
-        res.status(200).json({ otp: otp });
+        res.sendStatus(200).json({ msg: 'OTP sent seuccessfully!'});
     } catch (error) {
          handle500Errors(error, res)
 
@@ -58,17 +58,19 @@ const newUser = async (req: Request, res: Response) => {
                 referalCode: referringUser ? referringUser.referalId : null,
             })
 
-            await user.save();
+            await Promise.all([user.save(), referringUser?.updateOne({ $push: { referals: user._id } })])
 
-            await referringUser?.updateOne(
-                { $push: { referals: user._id } }
-            );
+            // await user.save();
+
+            // await referringUser?.updateOne(
+            //     { $push: { referals: user._id } }
+            // );
 
             const accessToken = jwt.sign({ email: user.email, id: user._id, isAdmin: user.isAdmin }, 'jwtkey', { expiresIn: '7d' });
 
             const { isAdmin, ...userDetails } = user._doc;
             
-            return res.status(201).json({ user: userDetails, accessToken });
+            return res.status(201).json({ user: userDetails, token: accessToken });
         } else {
 
             const accessToken = jwt.sign({email: user.email, id: user._id, isAdmin: user.isAdmin}, 'jwtkey', {expiresIn: '7d'});
