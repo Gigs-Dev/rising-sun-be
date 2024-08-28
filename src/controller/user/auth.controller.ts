@@ -58,19 +58,13 @@ const newUser = async (req: Request, res: Response) => {
                 referalCode: referringUser ? referringUser.referalId : null,
             })
 
-            await Promise.all([user.save(), referringUser?.updateOne({ $push: { referals: user._id } })])
-
-            // await user.save();
-
-            // await referringUser?.updateOne(
-            //     { $push: { referals: user._id } }
-            // );
+            await Promise.all([user.save(), referringUser?.updateOne({ $push: { referals: user._id } })]);
 
             const accessToken = jwt.sign({ email: user.email, id: user._id, isAdmin: user.isAdmin }, 'jwtkey', { expiresIn: '7d' });
 
             const { isAdmin, ...userDetails } = user._doc;
             
-            return res.status(201).json({ user: userDetails, token: accessToken });
+            return res.status(201).json({ user: userDetails, accessToken });
         } else {
 
             const accessToken = jwt.sign({email: user.email, id: user._id, isAdmin: user.isAdmin}, 'jwtkey', {expiresIn: '7d'});
