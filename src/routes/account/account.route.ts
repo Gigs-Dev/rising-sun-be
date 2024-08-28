@@ -3,9 +3,9 @@ import { Router } from "express";
 
 const router = Router();
 
-router.route('/credit').post(creditAccount);
+router.route('/credit/:userId').post(creditAccount);
 
-router.route('/debit').post(debitAccount);
+router.route('/debit/:userId').post(debitAccount);
 
 router.route('/:userId').get(getAccountHistory)
 

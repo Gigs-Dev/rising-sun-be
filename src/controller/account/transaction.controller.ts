@@ -11,19 +11,19 @@ export const creditAccount = async (req:Request, res: Response): Promise<void> =
         
          const flutterwaveSecretKey = process.env.FLUTTERWAVE_SECRET_KEY;
 
-         const res = await axios.get(`https://api.flutterwave.com/v3/transactions/${transactionRef}/verify`, {
+         const res1 = await axios.get(`https://api.flutterwave.com/v3/transactions/${transactionRef}/verify`, {
             headers: {
                 Authorization: `Bearer ${flutterwaveSecretKey}`,
             },
         });
 
-        const { status1: resStatus, data } = res.data;
+        const { status1: resStatus, data } = res1.data;
 
         if (resStatus === 'success') {
             const { amount, currency, status: paymentStatus } = data;
 
             if (paymentStatus === 'successful') {
-                // Update user's balance
+
                 const user = await User.findById(userId);
 
                 if (!user) {
@@ -31,31 +31,35 @@ export const creditAccount = async (req:Request, res: Response): Promise<void> =
                     return;
                 }
 
-                user.acctBal += amount;  // Assuming the amount is in the same currency as the user's balance
+                user.acctBal += amount;  
+
                 await user.save();
 
-                // Log the transaction in the database
                 const transaction = new Transaction({
                     user: userId,
                     amount,
-                    type: 'credit',  // Assuming this is a credit transaction
+                    type: 'credit',  
                     status: 'successful',
                     flutterwaveRef: transactionRef,
                 });
                 await transaction.save();
 
-                return res.status(200).json({ message: 'Payment verified and balance updated', balance: user.acctBal });
+                res.status(200).json({ message: 'Payment verified and balance updated', balance: user.acctBal });
+                return;
             } else {
-                return res.status(400).json({ message: 'Payment verification failed', status: paymentStatus });
+                res.status(400).json({ message: 'Payment verification failed', status: paymentStatus });
+                return;
             }
         } else {
-            return res.status(400).json({ message: 'Payment verification failed', status });
+           res.status(400).json({ message: 'Payment verification failed' });
         }
 
     } catch (error) {
         handle500Errors(error, res)
     }
 }
+
+
 
 
 
@@ -73,7 +77,7 @@ export const getAccountHistory = async (req:Request, res: Response): Promise<voi
     try {
         const userId = req.params.userId;
 
-        const history = await Account.find({ user: userId }).sort({ createdAt: -1 });
+        const history = await Transaction.find({ user: userId }).sort({ createdAt: -1 });
 
         if(!history || history.length === 0){
             res.status(404).json({ message: 'No transaction found for user' });

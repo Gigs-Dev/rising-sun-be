@@ -5,12 +5,12 @@ interface IAccount extends Document {
     amount: number;
     type: 'credit' | 'debit';
     status: 'idle' | 'pending' | 'successful' | 'failed';
-    flutterwaveRef: string;
+    ref: string;
     createdAt: Date;
   }
   
 
-const AccountSchema = new Schema({
+const TransactionSchema = new Schema({
     userId: {
         type: Types.ObjectId,
         required: true,
@@ -31,7 +31,7 @@ const AccountSchema = new Schema({
         enum: ['idle', 'pending', 'successful', 'failed'], 
         default: 'idle' 
     },
-    flutterwaveRef: { 
+    ref: { 
         type: String, 
         required: true 
     },
@@ -39,9 +39,20 @@ const AccountSchema = new Schema({
         type: Date,
         default: Date.now
     },
-    
-})
+    account_number: {
+        type: Number, 
+        required: true 
+    },
+    currency: {
+        type: String, 
+        required: true 
+    },
+    account_bank: {
+        type: String, 
+        required: true 
+    }
+}, {timestamps: true})
 
 
-const Account = model<IAccount>('Account', AccountSchema);
-export default Account;
+const Transaction = model<IAccount>('Transaction', TransactionSchema);
+export default Transaction;
