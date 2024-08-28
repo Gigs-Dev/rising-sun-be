@@ -104,8 +104,10 @@ export const withdrawal = async (req: Request, res: Response) => {
                ref: response.data.reference
            })
 
-           await user.save();
-           await transaction.save();
+           await Promise.all([user.save(), transaction.save()]);
+
+        //    await user.save();
+        //    await transaction.save();
 
            return res.status(200).json({user: user, transaction: transaction})
         } else {
