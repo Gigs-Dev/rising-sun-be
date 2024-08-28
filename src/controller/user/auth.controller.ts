@@ -14,7 +14,7 @@ const sendOtp = async (req: Request, res: Response) => {
         const { email } = req.body;
         const otp = await requestOtp({ email });
 
-        res.sendStatus(200).json({ msg: 'OTP sent seuccessfully!'});
+        res.status(200).json({ msg: 'OTP sent seuccessfully!'});
     } catch (error) {
          handle500Errors(error, res)
 
