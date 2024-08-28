@@ -1,15 +1,11 @@
-import { creditAccount, debitAccount, verifyCredit, verifyDebit, getAccountHistory } from "../../controller/account/transaction.controller";
+import { creditAccount, debitAccount, getAccountHistory } from "../../controller/account/transaction.controller";
 import { Router } from "express";
 
 const router = Router();
 
-router.route('/credit').post(creditAccount);
+router.route('/credit/:userId').post(creditAccount);
 
-router.route('/credit/verify').post(verifyCredit);
-
-router.route('/debit').post(debitAccount);
-
-router.route('/debit/verify').post(verifyDebit);
+router.route('/debit/:userId').post(debitAccount);
 
 router.route('/:userId').get(getAccountHistory)
 
