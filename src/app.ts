@@ -14,13 +14,17 @@ import helmet from 'helmet';
 
 const app: Express = express();
 
-// app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+  }));
 app.use(compression());
 app.use(json());
 app.use(urlencoded({extended: true} ));
 app.use(cors({
     origin: '*',
-    credentials: true
+    credentials: true,
+    allowedHeaders: ['Authorization', 'Content-Type'] 
 }))
 
 
