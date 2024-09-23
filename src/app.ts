@@ -14,11 +14,14 @@ import helmet from 'helmet';
 
 const app: Express = express();
 
-app.use(helmet());
+// app.use(helmet());
 app.use(compression());
 app.use(json());
 app.use(urlencoded({extended: true} ));
-app.use(cors())
+app.use(cors({
+    origin: '*',
+    credentials: true
+}))
 
 
 //testing route

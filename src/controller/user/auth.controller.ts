@@ -14,7 +14,7 @@ const sendOtp = async (req: Request, res: Response) => {
         const { email } = req.body;
         const otp = await requestOtp({ email });
 
-        res.status(200).json({ msg: 'OTP sent seuccessfully!'});
+        res.status(200).json({ msg: 'OTP sent seuccessfully!', code: otp});
     } catch (error) {
          handle500Errors(error, res)
 
@@ -64,7 +64,7 @@ const newUser = async (req: Request, res: Response) => {
 
             const { isAdmin, ...userDetails } = user._doc;
             
-            return res.status(201).json({ user: userDetails, accessToken });
+            return res.status(201).json({ user: userDetails, token: accessToken });
         } else {
 
             const accessToken = jwt.sign({email: user.email, id: user._id, isAdmin: user.isAdmin}, 'jwtkey', {expiresIn: '7d'});
