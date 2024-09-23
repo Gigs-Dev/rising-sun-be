@@ -61,8 +61,9 @@ const newUser = async (req: Request, res: Response) => {
             await Promise.all([user.save(), referringUser?.updateOne({ $push: { referals: user._id } })]);
 
             const token = jwt.sign({ email: user.email, id: user._id, isAdmin: user.isAdmin }, 'jwtkey', { expiresIn: '7d' });
-
+            console.log('token:', token)
             const { isAdmin, ...userDetails } = user._doc;
+
             
             return res.status(201).json({msg: 'User created successfully', user: userDetails, token: token });
         } else {
