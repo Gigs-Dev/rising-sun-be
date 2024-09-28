@@ -1,7 +1,7 @@
 {
   "name": "rising-sun-be",
   "version": "1.0.0",
-  "main": "dist/app.js",
+  "main": "dist/app.ts",
   "scripts": {
     "dev": "tsnd --respawn src/app.ts",
     "build": "rimraf ./dist && tsc -p .",
