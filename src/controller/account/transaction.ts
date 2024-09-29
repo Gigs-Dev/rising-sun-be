@@ -104,7 +104,9 @@ export const withdrawal = async (req: Request, res: Response) => {
                ref: response.data.reference
            })
 
-           await Promise.all([user.save(), transaction.save()]);
+        //    await user.updateOne({ acctBal:  user.acctBal });
+
+           await Promise.all([user.updateOne({ acctBal:  user.acctBal }), transaction.save()]);
 
            return res.status(200).json({user: user, msg: 'Transaction successful!'})
         } else {

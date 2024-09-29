@@ -9,6 +9,9 @@ import tradeRoute from './routes/trade/trade.route';
 import transactionRoute from './routes/transaction/transaction.route';
 import compression from "compression";
 import helmet from 'helmet';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 
 
@@ -28,11 +31,9 @@ app.use(cors({
 }))
 
 
-//testing route
-
 
 //routes use 
-app.use('/r', (req, res) => {
+app.use('/', (req, res) => {
     res.send('Conected to client');
 })
 

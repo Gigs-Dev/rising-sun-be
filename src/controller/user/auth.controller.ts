@@ -11,7 +11,7 @@ import jwt from 'jsonwebtoken';
 
 const sendOtp = async (req: Request, res: Response) => {
     try {
-        const { email } = req.body;
+        const email  = req.body;
         const otp = await requestOtp({ email });
 
         res.status(200).json({ msg: 'OTP sent seuccessfully!', code: otp});
@@ -28,52 +28,44 @@ const newUser = async (req: Request, res: Response) => {
     const { email, inputCode, referalCode } = req.body;
     try {
 
+        let user = await User.findOne({ email });
+
+        if(user) return res.status(403).json({ message: 'User already exist, please sign in' });
         
         const isOtpValid = await verifyOtp(email, inputCode);
 
         if (!isOtpValid) return res.status(403).json({ message: 'Otp not valid or has expired' })
 
-        let user = await User.findOne({ email });
 
-        if(!user){
+        const generatedId = await generateAcctID();
+        const generatedReferalId = await generateReferalId(email);
 
-            const generatedId = await generateAcctID();
-            const generatedReferalId = await generateReferalId(email);
+        let referringUser;
+        if (referalCode) {
+            referringUser = await User.findOne({ referalId: referalCode });
 
-            let referringUser;
-            if (referalCode) {
-                referringUser = await User.findOne({ referalId: referalCode });
-
-                if (!referringUser) {
-                    return res.status(400).json({ msg: 'Invalid referral code' });
-                }
-
+            if (!referringUser) {
+                return res.status(400).json({ msg: 'Invalid referral code' });
             }
 
-            user = new User({
-                ...req.body,
-                acctType: 'real',
-                acctId: generatedId,
-                referalId: generatedReferalId,
-                referalCode: referringUser ? referringUser.referalId : null,
-            })
-
-            await Promise.all([user.save(), referringUser?.updateOne({ $push: { referals: user._id } })]);
-
-            const token = jwt.sign({ email: user.email, id: user._id, isAdmin: user.isAdmin }, 'jwtkey', { expiresIn: '7d' });
-            console.log('token:', token)
-            const { isAdmin, ...userDetails } = user._doc;
-
-            
-            return res.status(201).json({msg: 'User created successfully', user: userDetails, token: token });
-        } else {
-
-            const token = jwt.sign({email: user.email, id: user._id, isAdmin: user.isAdmin}, 'jwtkey', {expiresIn: '7d'});
-
-            const { isAdmin, ...userDetails } = user._doc;
-
-            return res.status(200).json({msg: 'Logged in successfully',  user: userDetails, token: token });
         }
+
+        user = new User({
+            ...req.body,
+            acctType: 'real',
+            acctId: generatedId,
+            referalId: generatedReferalId,
+            referalCode: referringUser ? referringUser.referalId : null,
+        })
+
+        await Promise.all([user.save(), referringUser?.updateOne({ $push: { referals: user._id } })]);
+
+        const token = jwt.sign({ email: user.email, id: user._id, isAdmin: user.isAdmin }, 'jwtkey', { expiresIn: '7d' });
+
+        const { isAdmin, ...userDetails } = user._doc;
+
+        res.status(201).json({msg: 'User created successfully', user: userDetails, token: token });
+        
         
     } catch (error: any) {
         handle500Errors(error, res);
@@ -89,18 +81,29 @@ const newUser = async (req: Request, res: Response) => {
 
 
 const login = async (req: Request, res: Response) => {
+    const { email, inputCode } = req.body;
     try {
-        const { email, inputCode } = req.body;
+        const user = await User.findOne({ email });
+
+        if(!user) return res.status(404).json({ message: 'User with this email does not exist' });
 
         const isVerified = await verifyOtp(email, inputCode);
 
         if(!isVerified) return res.status(403).json({ message: 'Otp not valid or has expired' });
 
-        const user = await User.findOne({ email });
 
-        res.status(201).json(user);
+        const accessToken = jwt.sign({email: user.email, id: user._id, isAdmin: user.isAdmin}, 'jwtkey', {expiresIn: '7d'});
+
+        const { isAdmin, ...userDetails } = user._doc;
+
+        res.status(200).json({msg: 'Logged in successfully',  user: userDetails, token: accessToken });
+
     } catch (error) {
-        handle500Errors(error, res)
+        handle500Errors(error, res);
+        
+    } finally {
+
+        await deleteOtp(email);
     }
 }
 
