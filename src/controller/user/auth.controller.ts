@@ -11,7 +11,7 @@ import jwt from 'jsonwebtoken';
 
 const sendOtp = async (req: Request, res: Response) => {
     try {
-        const email  = req.body;
+        const { email } = req.body;
         const otp = await requestOtp({ email });
 
         res.status(200).json({ msg: 'OTP sent seuccessfully!', code: otp});
