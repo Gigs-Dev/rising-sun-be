@@ -46,9 +46,7 @@ const signUp = async (req: Request, res: Response) => {
     const { email, inputCode, referalCode } = req.body;
     try {
 
-        let user = await User.findOne({ email });
-
-        if(user) return res.status(403).json({ message: 'User already exist, please sign in' });
+        let user;
         
         const isOtpValid = await verifyOtp(email, inputCode);
 
@@ -101,7 +99,7 @@ const signUp = async (req: Request, res: Response) => {
 const login = async (req: Request, res: Response) => {
     const { email, inputCode } = req.body;
     try {
-        const user = await User.findOne({ email });
+        let user = await User.findOne({ email });
 
         if(!user) return res.status(404).json({ message: 'User with this email does not exist' });
 
