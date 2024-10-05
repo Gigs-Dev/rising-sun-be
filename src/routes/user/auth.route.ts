@@ -1,12 +1,12 @@
 import { Router } from 'express';
 
-import { sendOtp, newUser, login } from '../../controller/user/auth.controller';
+import { sendSignupOtp, signUp, login } from '../../controller/user/auth.controller';
 
 const router = Router()
 
-router.route('/sendotp').post(sendOtp);
+router.route('/sendotp').post(sendSignupOtp);
 
-router.route('/createnewsession').post(newUser);
+router.route('/createnewsession').post(signUp);
 
 router.post('/signin', login);
 

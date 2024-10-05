@@ -9,9 +9,12 @@ import jwt from 'jsonwebtoken';
 
 
 
-const sendOtp = async (req: Request, res: Response) => {
+const sendSignupOtp = async (req: Request, res: Response) => {
+    const { email } = req.body;
     try {
-        const { email } = req.body;
+        const user = await User.findOne({ email })
+        if(user) return res.status(200).json({ msg: 'A user with this email already  exist, please login'});
+        
         const otp = await requestOtp({ email });
 
         res.status(200).json({ msg: 'OTP sent seuccessfully!', code: otp});
@@ -22,8 +25,23 @@ const sendOtp = async (req: Request, res: Response) => {
 }
 
 
+const sendLoginOtp = async (req: Request, res: Response) => {
+    const { email } = req.body;
+    try {
+        const user = await User.findOne({ email })
+        if(!user) return res.status(404).json({ msg: 'A user with this email does not exist'});
+        
+        const otp = await requestOtp({ email });
 
-const newUser = async (req: Request, res: Response) => {
+        res.status(200).json({ msg: 'OTP sent seuccessfully!', code: otp});
+    } catch (error) {
+         handle500Errors(error, res)
+
+    }
+}
+
+
+const signUp = async (req: Request, res: Response) => {
 
     const { email, inputCode, referalCode } = req.body;
     try {
@@ -108,5 +126,5 @@ const login = async (req: Request, res: Response) => {
 }
 
 
-export { login, newUser, sendOtp }
+export { login, signUp, sendSignupOtp, sendLoginOtp }
 
