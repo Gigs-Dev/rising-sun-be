@@ -1,13 +1,13 @@
 import { Router } from "express";
 
 import { getReferals, creditReferer } from "../../controller/user/user.controller";
-import { verifyUser } from "../../util/verifyJwt";
+import { verifyToken } from "../../util/verifyJwt";
 
 
 const router = Router();
 
-router.route('/referrals/:referalId').get(verifyUser, getReferals);
+router.route('/referrals/:referalId').get(verifyToken, getReferals);
 
-router.patch('/', creditReferer);
+router.patch('/', verifyToken, creditReferer);
 
 export default router;

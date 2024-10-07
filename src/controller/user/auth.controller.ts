@@ -13,7 +13,7 @@ const sendSignupOtp = async (req: Request, res: Response) => {
     const { email } = req.body;
     try {
         const user = await User.findOne({ email })
-        if(user) return res.status(200).json({ msg: 'A user with this email already  exist, please login'});
+        if(user) return res.status(400).json({ msg: 'A user with this email already  exist, please login'});
         
         const otp = await requestOtp({ email });
 
