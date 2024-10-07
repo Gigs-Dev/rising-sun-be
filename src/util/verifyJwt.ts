@@ -6,7 +6,7 @@ import { handle500Errors } from "./api-response";
 
 interface CustomJwtPayload extends JwtPayload {
     isAdmin?: boolean;
-    userId?: string;
+    userId: string;
   }
 
 declare global {
@@ -14,6 +14,7 @@ declare global {
       interface Request {
         user?: CustomJwtPayload;
         userId?:  string;
+        id: string
       }
     }
   }
@@ -33,14 +34,23 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
             if(err || !payload) {
                 return res.status(403).json({ msg: 'Token is not valid' });
             }
-            req.user = payload as CustomJwtPayload;
-            req.userId = (payload as CustomJwtPayload).userId;
-            next();
+
+            const user = payload as CustomJwtPayload;
+
+            if(req.userId === user.userId){
+                req.user = user;
+                next()
+            } else {
+                return res.status(403).json({ msg: 'Unauthorized User action' });
+            }
         })
     } catch (error) {
         handle500Errors(error, res);
     }
 }
+// req.user = payload as CustomJwtPayload;
+// req.userId = (payload as CustomJwtPayload).userId;
+// next();
 
 
 
