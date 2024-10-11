@@ -17,23 +17,23 @@ const generateUniqueReference = () => {
 
 
 export const verify = async (req: Request, res: Response) => {
-    const { userId } = req.body;
+    const { userId, trans_Id } = req.body;
     try {
         const transactionDetails = await Transaction.findOne({ ref: req.query.tx_ref });
         if(!transactionDetails){
             res.status(400).json({ msg: 'An unexpected error occured'})
             return;
         }
-        const response = await flw.Transaction.verify({ id: req.query.transaction_id });
+        const response = await flw.Transaction.verify({ trans_Id });
 
         if(response.data.status === "successful"
             && response.data.amount === transactionDetails.amount
             && response.data.currency === "NGN") {
                 const user = await User.findById(userId);
                 if(!user){
-                    res.status(404).json({ msg: 'User not found' });
-                    return;
+                    return res.status(404).json({ msg: 'User not found' });
                 }
+
                 const { amount, tx_ref } = response.data;
                 if (typeof user.acctBal !== 'number') {
                     user.acctBal = 0;
@@ -56,14 +56,17 @@ export const verify = async (req: Request, res: Response) => {
                 res.status(400).json({ msg: 'Transaction Failed, please try again later'})
             }
 
-    } catch (error) {
-        handle500Errors(error, res);
+    } catch (error: any) {
+        // handle500Errors(error, res);
+        res.status(500).json(error.message);
+
     }
 }
 
 
 
 export const withdrawal = async (req: Request, res: Response) => {
+    
     const { amount, userId, account_bank, account_number } = req.body;
 
     if (!amount || !userId || !account_bank || !account_number) {
@@ -73,13 +76,11 @@ export const withdrawal = async (req: Request, res: Response) => {
         
         const user = await User.findById(userId);
         if(!user){
-            res.status(403).json({ msg: 'Transaction Failed, please try again later'});
-            return;
+            return res.status(403).json({ msg: 'Transaction Failed, please try again later'});
         }
         
         if(user.acctBal < amount){
-            res.status(403).json({ msg: 'Insufficient balance'});
-            return;
+            return res.status(403).json({ msg: 'Insufficient balance'});
         }
         
         const details = {
@@ -104,7 +105,6 @@ export const withdrawal = async (req: Request, res: Response) => {
                ref: response.data.reference
            })
 
-        //    await user.updateOne({ acctBal:  user.acctBal });
 
            await Promise.all([user.updateOne({ acctBal:  user.acctBal }), transaction.save()]);
 
