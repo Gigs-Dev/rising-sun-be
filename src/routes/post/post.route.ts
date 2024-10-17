@@ -6,7 +6,7 @@ import { verifyUser, verifyToken } from "../../util/verifyJwt";
 
 const router = Router();
 
-router.get('/', verifyToken, getPosts);
+router.get('/', getPosts);
 
 router.get('/:id', verifyToken, getSinglePost);
 

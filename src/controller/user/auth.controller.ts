@@ -13,11 +13,11 @@ const sendSignupOtp = async (req: Request, res: Response) => {
     const { email } = req.body;
     try {
         const user = await User.findOne({ email })
-        if(user) return res.send({ status: 409, msg: 'A user with this email already  exist, please login'});
+        if(user) return res.status(422).send({ status: 409, msg: 'A user with this email already  exist, please login'});
         
         const otp = await requestOtp({ email });
 
-        res.status(200).send({ status: 200, msg: 'OTP sent seuccessfully!', code: otp});
+        res.status(200).send({ status: 200, msg: 'OTP sent successfully!', code: otp});
     } catch (error) {
          handle500Errors(error, res)
 
@@ -29,11 +29,11 @@ const sendLoginOtp = async (req: Request, res: Response) => {
     const { email } = req.body;
     try {
         const user = await User.findOne({ email })
-        if(!user) return res.send({ status: 404, msg: 'A user with this email does not exist'});
+        if(!user) return res.status(404).send({ status: 404, msg: 'A user with this email does not exist'});
         
         const otp = await requestOtp({ email });
 
-        res.status(200).send({ status: 200, msg: 'OTP sent seuccessfully!', code: otp});
+        res.status(200).send({ status: 200, msg: 'OTP sent successfully!', code: otp});
     } catch (error) {
          handle500Errors(error, res)
 
@@ -50,7 +50,7 @@ const signUp = async (req: Request, res: Response) => {
         
         const isOtpValid = await verifyOtp(email, inputCode);
 
-        if (!isOtpValid) return res.send({ status: 403, message: 'Otp not valid or has expired' })
+        if (!isOtpValid) return res.status(403).send({ status: 403, message: 'Otp not valid or has expired' })
 
 
         const generatedId = await generateAcctID();
@@ -61,7 +61,7 @@ const signUp = async (req: Request, res: Response) => {
             referringUser = await User.findOne({ referalId: referalCode });
 
             if (!referringUser) {
-                return res.send({ status: 400, msg: 'Invalid referral code' });
+                return res.status(400).send({ status: 400, msg: 'Invalid referral code' });
             }
 
         }
@@ -101,7 +101,7 @@ const login = async (req: Request, res: Response) => {
     try {
         let user = await User.findOne({ email });
 
-        if(!user) return res.send({ status: 404, message: 'User with this email does not exist' });
+        if(!user) return res.status(404).send({ status: 404, message: 'User with this email does not exist' });
 
         const isVerified = await verifyOtp(email, inputCode);
 
