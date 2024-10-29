@@ -105,8 +105,7 @@ export const paymentHistory = async (req: Request, res: Response) => {
         const history = await Transaction.find({ user: userId }).sort({ createdAt: -1 });
 
         if(!history || history.length === 0){
-            res.status(404).json({ message: 'No transaction found for user' });
-            return;
+            return res.status(404).json({ message: 'No transaction found for user' });
         }
 
         res.status(200).json(history);
