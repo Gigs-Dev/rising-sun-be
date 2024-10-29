@@ -2,7 +2,7 @@ import { Response, Request } from "express";
 import Transaction from '../../model/account.model';
 import User from "../../model/user.model";
 import { handle500Errors } from "../../util/api-response";
-
+// import Flutterwave  from 'flutterwave-node-v3'
 
 
 const Flutterwave = require('flutterwave-node-v3');
@@ -33,7 +33,7 @@ export const verifyAcctNumber = async (req: Request, res: Response) => {
             });
         }
     } catch (error: any) {
-        res.status(500).json(error.message);
+        res.status(500).json({ msg: error.message, log: 'Something went wrong!' });
 
     }
 }
@@ -49,7 +49,7 @@ const { transactionId, expectedAmount, expectedCurrency, userId } = req.body;
         }
 
         // Call Flutterwave's transaction verification endpoint
-        const response = await flw.Transaction.verify({ id: transactionId });
+        const response = await flw.Transaction.verify({ id: Number(transactionId) });
 
         if (response.status === "success") {
         const transactionData = response.data;
@@ -69,7 +69,7 @@ const { transactionId, expectedAmount, expectedCurrency, userId } = req.body;
         user.acctBal += transactionData.amount;
         await user.save();
 
-// Record the transaction in the Transaction schema
+        // Record the transaction in the Transaction schema
         await Transaction.create({
             userId: user._id,
             amount: transactionData.amount,
