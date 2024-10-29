@@ -1,4 +1,4 @@
-import { creditAccount, debitAccount, getAccountHistory } from "../../controller/account/transaction.controller";
+import { creditAccount, debitAccount, getAccountHistory } from "../../controller/payment/transaction.controller";
 import { Router } from "express";
 
 const router = Router();

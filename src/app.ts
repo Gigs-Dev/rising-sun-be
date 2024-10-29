@@ -6,7 +6,7 @@ import userRoute from './routes/user/user.route';
 import postRoute from './routes/post/post.route';
 import accountRoute from './routes/account/account.route';
 import tradeRoute from './routes/trade/trade.route';
-import transactionRoute from './routes/transaction/transaction.route';
+import paymentRoute from './routes/payment/payment.routes';
 import compression from "compression";
 import helmet from 'helmet';
 import dotenv from 'dotenv';
@@ -38,7 +38,8 @@ app.use('/api/user', userRoute);
 app.use('/api/post', postRoute);
 app.use('/api/account', accountRoute);
 app.use('/api/trade', tradeRoute);
-app.use('/api/transaction', transactionRoute);
+app.use('/api/payment', paymentRoute)
+
 
 
 app.use('/', (req, res) => {

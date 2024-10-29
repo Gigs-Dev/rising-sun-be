@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { transactionHistory, withdrawal, verify } from '../../controller/account/transaction';
+import { transactionHistory, withdrawal, verify } from '../../controller/payment/transaction';
 const router = Router();
 
 router.route('/:userId').get(transactionHistory);
