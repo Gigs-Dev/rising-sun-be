@@ -2,8 +2,13 @@ import { Response, Request } from "express";
 import Transaction from '../../model/account.model';
 import User from "../../model/user.model";
 import { handle500Errors } from "../../util/api-response";
-// import Flutterwave  from 'flutterwave-node-v3'
 
+
+declare module 'express-serve-static-core' {
+    interface Request {
+        userId?: string;  // Add userId as an optional string
+    }
+}
 
 const Flutterwave = require('flutterwave-node-v3');
 const flw = new Flutterwave(process.env.FLW_PUBLIC_KEY, process.env.FLW_SECRET_KEY);
@@ -12,13 +17,11 @@ const flw = new Flutterwave(process.env.FLW_PUBLIC_KEY, process.env.FLW_SECRET_K
 export const verifyAcctNumber = async (req: Request, res: Response) => {
     const { account_number, account_bank } = req.body;
     try {
-        if (!account_number || !account_bank) {
-            return res.status(400).json({ message: "Account number and bank code are required." });
-        }
+
         const response = await flw.Misc.verify_Account({ account_number, account_bank });
 
-        if (response.status === "success") {
-            // Account verified successfully
+        if (response.status === 'success') {
+  
             const { account_name } = response.data;
 
             return res.status(200).json({
@@ -27,9 +30,9 @@ export const verifyAcctNumber = async (req: Request, res: Response) => {
                 account_number: response.data.account_number,
             });
         } else {
-            // Verification failed
+
             return res.status(400).json({
-                message: response.message || "Account verification failed",
+                message: response.message, log: "Account verification failed",
             });
         }
     } catch (error: any) {
@@ -41,27 +44,22 @@ export const verifyAcctNumber = async (req: Request, res: Response) => {
 
 
 export const verifyTransaction = async (req: Request, res: Response) => {
-const { transactionId, expectedAmount, expectedCurrency, userId } = req.body;
+const { transactionId, expectedAmount, expectedCurrency } = req.body;
 
     try {
-        if (!transactionId || !expectedAmount || !expectedCurrency || !userId) {
-            return res.status(400).json({ message: "Transaction ID, expected amount, currency, and user ID are required" });
-        }
 
-        // Call Flutterwave's transaction verification endpoint
         const response = await flw.Transaction.verify({ id: Number(transactionId) });
 
         if (response.status === "success") {
         const transactionData = response.data;
 
-        // Verify the transaction details
         if (
             transactionData.status === "successful" &&
             transactionData.amount === expectedAmount &&
             transactionData.currency === expectedCurrency
         ) {
-        // Update user's account balance
-        const user = await User.findById(userId);
+
+        const user = await User.findById(req.userId);
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
@@ -69,7 +67,6 @@ const { transactionId, expectedAmount, expectedCurrency, userId } = req.body;
         user.acctBal += transactionData.amount;
         await user.save();
 
-        // Record the transaction in the Transaction schema
         await Transaction.create({
             userId: user._id,
             amount: transactionData.amount,
