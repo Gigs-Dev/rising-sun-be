@@ -50,14 +50,14 @@ const { transactionId, expectedAmount, expectedCurrency } = req.body;
 
         const response = await flw.Transaction.verify({ id: Number(transactionId) });
 
-        if (response.status === "success") {
+        if (response.data.status === "successful" && response.data.amount === expectedAmount && response.data.currency === expectedCurrency) {
         const transactionData = response.data;
 
-        if (
-            transactionData.status === "successful" &&
-            transactionData.amount === expectedAmount &&
-            transactionData.currency === expectedCurrency
-        ) {
+        // if (
+        //     transactionData.status === "successful" &&
+        //     transactionData.amount === expectedAmount &&
+        //     transactionData.currency === expectedCurrency
+        // ) {
 
         const user = await User.findById(req.userId);
         if (!user) {
@@ -84,10 +84,10 @@ const { transactionId, expectedAmount, expectedCurrency } = req.body;
         });
         } else {
             return res.status(400).json({
-                message: "Transaction verification failed. Details did not match expected values.", transactionData, });
+                message: "Transaction verification failed. Details did not match expected values." });
             }
-        } else {
-            return res.status(400).json({ message: response.message || "Failed to fetch transaction details"}) }
+        // } else {
+        //     return res.status(400).json({ message: response.message || "Failed to fetch transaction details"}) }
 
         } catch (error: any) {
             res.status(500).json({ message: error.message });
