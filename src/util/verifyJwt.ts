@@ -34,15 +34,18 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
             if(err || !payload) {
                 return res.status(403).json({ msg: 'Token is not valid' });
             }
-
             const user = payload as CustomJwtPayload;
 
-            if(req.userId === user.userId){
-                req.user = user;
-                next()
-            } else {
-                return res.status(403).json({ msg: 'Unauthorized User action' });
-            }
+            req.userId = user.id;
+            // req.user = user; 
+            next()
+            // const user = payload as CustomJwtPayload;
+
+            // if(req.userId === user.userId){
+            //     req.user = user;
+            // } else {
+            //     return res.status(403).json({ msg: 'Unauthorized User action' });
+            // }
         })
     } catch (error) {
         handle500Errors(error, res);

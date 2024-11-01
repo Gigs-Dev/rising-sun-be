@@ -43,19 +43,19 @@ export const verifyAcctNumber = async (req: Request, res: Response) => {
 
 
 export const verifyTransaction = async (req: Request, res: Response) => {
-const { transactionId, expectedAmount, expectedCurrency } = req.body;
+const { transactionId } = req.body;
 
     try {
 
         const response = await flw.Transaction.verify({ id: Number(transactionId) });
-        console.log(response, 'Response');
+        console.log(response);
 
-        if (response?.data?.status === "successful" && response?.data?.amount === expectedAmount && response?.data?.currency === expectedCurrency) {
+        if (response.data.status === "successful") {
 
         const transactionData = response.data;
 
         const user = await User.findById(req.userId);
-
+        
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
@@ -67,9 +67,7 @@ const { transactionId, expectedAmount, expectedCurrency } = req.body;
             type: 'credit',
             status: 'success',
             ref: transactionData.flw_ref,
-            account_number: transactionData.customer.account_number,
             currency: transactionData.currency,
-            account_bank: transactionData.customer.account_bank,
         });
         
         user.acctBal += transactionData.amount;
@@ -80,6 +78,7 @@ const { transactionId, expectedAmount, expectedCurrency } = req.body;
             message: "Transaction verified and account credited successfully",
             acctBal: user.acctBal,
         });
+        
         } else {
             return res.status(400).json({ message: response.message }); }
 

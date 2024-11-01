@@ -28,7 +28,7 @@ const TransactionSchema = new Schema({
     },
     status: { 
         type: String, 
-        enum: ['idle', 'pending', 'successful', 'failed'], 
+        enum: ['idle', 'pending', 'success', 'failed'], 
         default: 'idle' 
     },
     ref: { 
@@ -41,15 +41,12 @@ const TransactionSchema = new Schema({
     },
     account_number: {
         type: Number, 
-        required: true 
     },
     currency: {
         type: String, 
-        required: true 
     },
     account_bank: {
         type: String, 
-        required: true 
     }
 }, {timestamps: true})
 
