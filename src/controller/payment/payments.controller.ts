@@ -6,7 +6,7 @@ import { handle500Errors } from "../../util/api-response";
 
 declare module 'express-serve-static-core' {
     interface Request {
-        userId?: string;  // Add userId as an optional string
+        userId?: string; 
     }
 }
 

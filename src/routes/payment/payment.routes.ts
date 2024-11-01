@@ -5,10 +5,10 @@ import { verifyToken } from "../../util/verifyJwt";
 const router = Router();
 
 
-router.post('/verify-account-number', verifyAcctNumber);
+router.post('/verify-account-number', verifyToken, verifyAcctNumber);
 
-router.post('/verify-transaction', verifyTransaction);
+router.post('/verify-transaction', verifyToken, verifyTransaction);
 
-router.get('/:userId', paymentHistory)
+router.get('/:userId', verifyToken,  paymentHistory)
 
 export default router;
