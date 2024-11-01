@@ -42,52 +42,46 @@ export const verifyAcctNumber = async (req: Request, res: Response) => {
 }
 
 
-
 export const verifyTransaction = async (req: Request, res: Response) => {
 const { transactionId, expectedAmount, expectedCurrency } = req.body;
 
     try {
 
         const response = await flw.Transaction.verify({ id: Number(transactionId) });
+        console.log(response, 'Response');
 
-        if (response.data.status === "successful" && response.data.amount === expectedAmount && response.data.currency === expectedCurrency) {
+        if (response?.data?.status === "successful" && response?.data?.amount === expectedAmount && response?.data?.currency === expectedCurrency) {
+
         const transactionData = response.data;
 
-        // if (
-        //     transactionData.status === "successful" &&
-        //     transactionData.amount === expectedAmount &&
-        //     transactionData.currency === expectedCurrency
-        // ) {
-
         const user = await User.findById(req.userId);
+
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-
-        user.acctBal += transactionData.amount;
-        await user.save();
-
+        
+        
         await Transaction.create({
             userId: user._id,
             amount: transactionData.amount,
             type: 'credit',
-            status: 'successful',
+            status: 'success',
             ref: transactionData.flw_ref,
             account_number: transactionData.customer.account_number,
             currency: transactionData.currency,
             account_bank: transactionData.customer.account_bank,
         });
+        
+        user.acctBal += transactionData.amount;
+
+        await user.save();
 
         return res.status(200).json({
             message: "Transaction verified and account credited successfully",
             acctBal: user.acctBal,
         });
         } else {
-            return res.status(400).json({
-                message: "Transaction verification failed. Details did not match expected values." });
-            }
-        // } else {
-        //     return res.status(400).json({ message: response.message || "Failed to fetch transaction details"}) }
+            return res.status(400).json({ message: response.message }); }
 
         } catch (error: any) {
             res.status(500).json({ message: error.message });

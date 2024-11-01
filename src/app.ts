@@ -9,6 +9,7 @@ import paymentRoute from './routes/payment/payment.routes';
 import compression from "compression";
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import morgan from "morgan";
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use(helmet({
 app.use(compression());
 app.use(json());
 app.use(urlencoded({extended: true} ));
+app.use(morgan('common'))
 app.use(cors({
     origin: '*',
     credentials: true,
