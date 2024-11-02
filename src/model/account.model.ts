@@ -45,6 +45,12 @@ const TransactionSchema = new Schema({
     },
     account_bank: {
         type: String, 
+    },
+    reference:{
+        type: String, 
+    },
+    narration: {
+        type: String
     }
 }, {timestamps: true})
 

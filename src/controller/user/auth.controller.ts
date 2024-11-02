@@ -43,12 +43,12 @@ const sendLoginOtp = async (req: Request, res: Response) => {
 
 const signUp = async (req: Request, res: Response) => {
 
-    const { email, inputCode, referalCode } = req.body;
+    const { email, code, referalCode } = req.body;
     try {
 
         let user;
         
-        const isOtpValid = await verifyOtp(email, inputCode);
+        const isOtpValid = await verifyOtp(email, code);
 
         if (!isOtpValid) return res.send({ status: 403, message: 'Otp not valid or has expired' })
 
@@ -85,7 +85,7 @@ const signUp = async (req: Request, res: Response) => {
         
     } catch (error: any) {
         handle500Errors(error, res);
-        
+    
     } finally {
         await deleteOtp(email);
     }
@@ -95,20 +95,19 @@ const signUp = async (req: Request, res: Response) => {
 
 
 
-
 const login = async (req: Request, res: Response) => {
-    const { email, inputCode } = req.body;
+    const { email, code } = req.body;
     try {
         let user = await User.findOne({ email });
 
         if(!user) return res.send({ status: 404, message: 'User with this email does not exist' });
 
-        const isVerified = await verifyOtp(email, inputCode);
+        const isVerified = await verifyOtp(email, code);
 
         if(!isVerified) return res.send({ status: 403, message: 'Otp not valid or has expired' });
 
 
-        const accessToken = jwt.sign({email: user.email, id: user._id, isAdmin: user.isAdmin}, 'jwtkey', {expiresIn: '7d'});
+        const accessToken = jwt.sign({email: user.email, id: user._id, isAdmin: user.isAdmin}, 'jwtkey', {expiresIn: '14d'});
 
         const { isAdmin, ...userDetails } = user._doc;
 
@@ -117,7 +116,8 @@ const login = async (req: Request, res: Response) => {
     } catch (error) {
         handle500Errors(error, res);
         
-    } finally {
+    }
+     finally {
 
         await deleteOtp(email);
     }
