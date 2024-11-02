@@ -29,7 +29,7 @@ const sendLoginOtp = async (req: Request, res: Response) => {
     const { email } = req.body;
     try {
         const user = await User.findOne({ email })
-        if(!user) return res.status(404).send({ status: 404, msg: 'A user with this email does not exist'});
+        if(!user) return res.status(422).send({ status: 404, msg: 'A user with this email does not exist'});
         
         const otp = await requestOtp({ email });
 

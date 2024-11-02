@@ -4,6 +4,7 @@ import User from "../../model/user.model";
 import { handle500Errors } from "../../util/api-response";
 
 
+
 declare module 'express-serve-static-core' {
     interface Request {
         userId?: string; 
@@ -86,6 +87,16 @@ const { transactionId } = req.body;
             res.status(500).json({ message: error.message });
     }
 };
+
+
+export const withdrawal = async (req: Request, res: Response) => {
+    const { account_bank, account_number, amount } = req.body;
+    try {
+        
+    } catch (error) {
+          res.status(500).json(error);
+    }
+}
 
 
 export const paymentHistory = async (req: Request, res: Response) => {
