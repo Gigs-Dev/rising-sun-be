@@ -101,21 +101,31 @@ const { transactionId } = req.body;
 export const withdrawal = async (req: Request, res: Response) => {
     const { account_bank, account_number, amount } = req.body;
     try {
-        const user = req.body;
-        if(!user){
+        const id = req.userId;
+        if(!id){
             return  res.status(400).json({ message: 'Invalid user operation' });
         }
 
-        if(user.acctBal < amount) {
-            return  res.status(400).json({ message: 'Insufficient balance' });
+        const user = await User.findOne({_id: id})
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (Number(user.acctBal) < Number(amount)) {
+            return res.status(400).json({ message: 'Insufficient balance' });
         }
 
         const transfer = await createWithrawal(account_bank, account_number, amount);
 
-        return res.status(200).json({data: transfer,  msg: 'Transaction successful'})
+        if (transfer.status !== "success") {
+            return res.status(500).json({ message: 'Transaction failed', msg: transfer.message });
+        }
 
-    } catch (error) {
-        res.status(500).json(error);
+        res.status(200).json({data: transfer,  msg: 'Transaction successful'})
+
+    } catch (error: any) {
+        res.status(500).json(error.message);
     }
 }
 
