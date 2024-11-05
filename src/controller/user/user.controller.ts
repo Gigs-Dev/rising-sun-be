@@ -22,6 +22,15 @@ export const getReferals = async (req: Request, res: Response) =>  {
 
 }
 
+export const singleUser = async (req: Request, res: Response) => {
+    try {
+        const user = await User.findById(req.params.id);
+        return res.status(200).json(user)
+    } catch (error) {
+        res.status(200).json(error)
+    }
+}
+
 
 
 export const creditReferer = async (req: Request, res: Response) => {

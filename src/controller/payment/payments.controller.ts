@@ -2,6 +2,7 @@ import { Response, Request } from "express";
 import Transaction from '../../model/account.model';
 import User from "../../model/user.model";
 import { handle500Errors } from "../../util/api-response";
+import { createWithrawal } from "../../services/transaction/payment";
 
 
 
@@ -100,7 +101,19 @@ const { transactionId } = req.body;
 export const withdrawal = async (req: Request, res: Response) => {
     const { account_bank, account_number, amount } = req.body;
     try {
-        
+        const user = req.body;
+        if(!user){
+            return  res.status(400).json({ message: 'Invalid user operation' });
+        }
+
+        if(user.acctBal < amount) {
+            return  res.status(400).json({ message: 'Insufficient balance' });
+        }
+
+        const transfer = await createWithrawal(account_bank, account_number, amount);
+
+        return res.status(200).json({data: transfer,  msg: 'Transaction successful'})
+
     } catch (error) {
         res.status(500).json(error);
     }
@@ -113,7 +126,7 @@ export const paymentHistory = async (req: Request, res: Response) => {
 
         const history = await Transaction.find({ user: userId }).sort({ createdAt: -1 });
 
-        if(!history || history.length === 0){
+        if(!history){
             return res.status(404).json({ message: 'No transaction found for user' });
         }
 
