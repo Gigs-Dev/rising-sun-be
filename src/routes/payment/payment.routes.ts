@@ -9,7 +9,7 @@ router.post('/verify-account-number', verifyToken, verifyAcctNumber);
 
 router.post('/verify-transaction', verifyToken, verifyTransaction);
 
-router.get('/withrawal', verifyToken, withdrawal)
+router.post('/withdrawal', verifyToken, withdrawal)
 
 router.get('/:userId', verifyToken,  paymentHistory)
 

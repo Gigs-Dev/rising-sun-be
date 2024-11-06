@@ -37,23 +37,13 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
             const user = payload as CustomJwtPayload;
 
             req.userId = user.id;
-            // req.user = user; 
             next()
-            // const user = payload as CustomJwtPayload;
-
-            // if(req.userId === user.userId){
-            //     req.user = user;
-            // } else {
-            //     return res.status(403).json({ msg: 'Unauthorized User action' });
-            // }
         })
     } catch (error) {
         handle500Errors(error, res);
     }
 }
-// req.user = payload as CustomJwtPayload;
-// req.userId = (payload as CustomJwtPayload).userId;
-// next();
+
 
 
 
