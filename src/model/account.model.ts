@@ -33,6 +33,9 @@ const TransactionSchema = new Schema({
         type: String, 
         required: true 
     },
+    account_name: {
+        type: String
+    },
     createdAt: { 
         type: Date,
         default: Date.now

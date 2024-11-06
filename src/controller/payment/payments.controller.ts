@@ -13,12 +13,6 @@ declare module 'express-serve-static-core' {
 }
 
 
-const generateUniqueReference = () => {
-    const timestamp = Date.now()
-    const randomSuffix = Math.floor(Math.random() * 10000)
-    return `txn_${timestamp}_${randomSuffix}`
-}
-
 
 const Flutterwave = require('flutterwave-node-v3');
 const flw = new Flutterwave(process.env.FLW_PUBLIC_KEY, process.env.FLW_SECRET_KEY);
@@ -78,6 +72,7 @@ const { transactionId } = req.body;
             status: 'success',
             ref: transactionData.flw_ref,
             currency: transactionData.currency,
+
         });
         
         user.acctBal += transactionData.amount;
@@ -116,13 +111,28 @@ export const withdrawal = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Insufficient balance' });
         }
 
-        const transfer = await createWithrawal(account_bank, account_number, amount);
+        const response = await createWithrawal(account_bank, account_number, amount);
+        console.log(response);
 
-        if (transfer.status !== "success") {
-            return res.status(500).json({ message: 'Transaction failed', msg: transfer.message });
+        const transactionData = response.data;
+
+        if (response.status === "success") {
+            await Transaction.create({
+                userId: user._id,
+                amount: transactionData.amount,
+                type: 'debit',
+                status: 'success',
+                ref: transactionData.reference,
+                currency: transactionData.currency,
+                account_bank: transactionData.bank_name,
+                account_name: transactionData.full_name
+            });
+           return res.status(200).json({data: response.data,  msg: 'Transaction successful', bal: user.acctBal });
+
+        } else {
+
+            return res.status(500).json({ message: 'Transaction failed', msg: response.message });
         }
-
-        res.status(200).json({data: transfer,  msg: 'Transaction successful'})
 
     } catch (error: any) {
         res.status(500).json(error.message);
