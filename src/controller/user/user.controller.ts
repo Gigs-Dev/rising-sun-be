@@ -39,10 +39,3 @@ export const singleUser = async (req: Request, res: Response) => {
 
 
 
-export const creditReferer = async (req: Request, res: Response) => {
-    try {
-        
-    } catch (error) {
-        handle500Errors(error, res)
-    }
-}
