@@ -64,7 +64,7 @@ const { transactionId } = req.body;
             return res.status(404).json({ message: "User not found" });
         }
         
-        const previousTransaction = await Transaction.findOne({ userId: user._id, type: 'credit', status: 'success' });
+        // const previousTransaction = await Transaction.findOne({ userId: user._id, type: 'credit', status: 'success' });
         
         await Transaction.create({
             userId: user._id,
@@ -80,14 +80,14 @@ const { transactionId } = req.body;
 
         await user.save();
 
-        if (!previousTransaction && user.referalId) {
-            const referrer = await User.findOne({ referalCode: user.referalId });
+        // if (!previousTransaction && user.referalId) {
+        //     const referrer = await User.findOne({ referalCode: user.referalId });
             
-            if (referrer) {
-                referrer.acctBal += 1000; // Reward amount
-                await referrer.save();
-            }
-        }
+        //     if (referrer) {
+        //         referrer.acctBal += 1000; // Reward amount
+        //         await referrer.save();
+        //     }
+        // }
 
         return res.status(200).json({
             message: "Transaction verified and account credited successfully",
