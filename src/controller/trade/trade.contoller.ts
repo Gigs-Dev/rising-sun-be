@@ -18,27 +18,28 @@ export const createTrade = async (req: Request, res: Response) => {
         const user = await User.findById(req.userId);
         if(!user) return res.json({msg: 'Invalid user or user not found'});
 
-        const newTradw = await Trade.create({
-            tradeType, result, amount
-        });
-
-        if(result === true){
-
-            if(amount < user.acctBal) return res.json({msg: 'Insufficient balance'});
-
-            user.acctBal += (amount * 1.8)
-
-            await Promise.all([user.save(), newTradw.save()])
-        } else {
-
-            user.acctBal -= amount 
-
-            await Promise.all([user.save(), newTradw.save()])
+        if (result === true && amount > user.acctBal) {
+            return res.status(400).json({ msg: 'Insufficient balance' });
         }
 
-        return res.status(200).json({trade: newTradw, user: user})
-    } catch (error) {
-        handle500Errors(error, res)
+        const newTrade = new Trade({
+            userId: req.userId,
+            tradeType,
+            amount,
+            result,
+        });
+
+        if (result) {
+            user.acctBal += amount * 1.8;
+        } else {
+            user.acctBal -= amount;
+        }
+
+        await Promise.all([user.save(), newTrade.save()]);
+
+        return res.status(200).json({ trade: newTrade, user });
+    } catch (error: any) {
+        res.status(500).json(error.message)
     }
 }
 
@@ -53,8 +54,8 @@ export const tradeHistory = async (req: Request, res: Response) => {
         }
 
         res.status(200).json(trades);
-    } catch (error) {
-        handle500Errors(error, res)
+    } catch (error: any) {
+        res.status(500).json(error.message)
     }
 }
 
