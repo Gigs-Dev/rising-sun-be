@@ -4,7 +4,7 @@ import { verifyToken } from "../../util/verifyJwt";
 
 const router = Router();
 
-router.route('/create').post(verifyToken, createTrade);
+router.route('/newtrade').post(verifyToken, createTrade);
 
 router.route('/:userId').get(verifyToken, tradeHistory);
 

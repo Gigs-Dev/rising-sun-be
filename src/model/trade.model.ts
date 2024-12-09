@@ -12,13 +12,17 @@ const TradeSchema = new Schema({
         type: Number,
         required: true
     },
-    outcome: {
+    tradeType: {
         type: String,
-        enum: ['win', 'lost', 'neutral']
+        enum: ['up', 'lost', 'neutral']
+    },
+    result: {
+        type: Boolean,
+        required: true
     },
     userId: {
         type: Types.ObjectId,
-        ref: 'User'
+        required: true
     }
     
 }, {timestamps: true}
