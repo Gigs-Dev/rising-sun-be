@@ -2,7 +2,7 @@ import mongoose, { Document, model, Schema, Types } from "mongoose";
 
 interface ITrade extends Document {
     account: number;
-    outcome: 'win' | 'loss' | 'neutral';
+    outcome: 'up' | 'down' | 'neutral';
     userId: Types.ObjectId;
     createdAt?: Date
 }
@@ -12,13 +12,18 @@ const TradeSchema = new Schema({
         type: Number,
         required: true
     },
-    outcome: {
+    tradeType: {
         type: String,
-        enum: ['win', 'lost', 'neutral']
+        enum: ['up', 'down', 'neutral']
+    },
+    result: {
+        type: Boolean,
+        required: true
     },
     userId: {
-        type: Types.ObjectId,
-        ref: 'User'
+        type:  mongoose.Schema.Types.ObjectId,
+         ref: 'User',
+        required: true
     }
     
 }, {timestamps: true}
