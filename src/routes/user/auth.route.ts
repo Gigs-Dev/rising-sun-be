@@ -4,11 +4,11 @@ import { sendSignupOtp, sendLoginOtp, signUp, login } from '../../controller/use
 
 const router = Router()
 
-router.route('/signupotp').post(sendSignupOtp);
+router.post('/signupotp', sendSignupOtp);
 
 router.post('/signinotp', sendLoginOtp);
 
-router.route('/signup').post(signUp);
+router.post('/signup', signUp);
 
 router.post('/signin', login);
 
