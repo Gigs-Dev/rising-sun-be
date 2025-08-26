@@ -6,7 +6,7 @@ import userRoute from './routes/user/user.route';
 import postRoute from './routes/post/post.route';
 import tradeRoute from './routes/trade/trade.route';
 import paymentRoute from './routes/payment/payment.routes';
-import compression from "compression";
+// import compression from "compression";
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import morgan from "morgan";
@@ -21,7 +21,7 @@ app.use(helmet({
     contentSecurityPolicy: false,
     crossOriginResourcePolicy: { policy: "cross-origin" }
   }));
-app.use(compression());
+// app.use(compression({ filter: shouldCompress }));
 app.use(json());
 app.use(urlencoded({extended: true} ));
 app.use(morgan('common'))
