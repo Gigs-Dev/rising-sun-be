@@ -1,6 +1,6 @@
 import User from "../../model/user.model";
 import { Response, Request } from "express"
-import { requestOtp, deleteOtp } from "../../services/auth/requestOtp";
+import { requestOtp, deleteOtp } from "../../services/auth/sendOtp";
 import { handle500Errors } from "../../util/api-response";
 import { verifyOtp } from "../../services/auth/verifyOtp";
 import { generateAcctID, generateReferalId } from "../../services/auth/generateId";
