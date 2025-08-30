@@ -1,33 +1,30 @@
 import nodemailer from 'nodemailer';
-import { generateRandomOTP } from "../../util/util-gen";
 import { OtpModel } from '../../model/otp.model';
+import { sendRegistrationOTP } from '../../templates/mailTemplate'; 
 
 interface Otp {
     code: string;
     expiresAt: Date;
 }
 
-
-export async function requestOtp(user: { email: string }): Promise<Otp> {
+export async function sendOtp(user: { email: string }, subject: string, otp: string): Promise<Otp> {
     const { email } = user;
 
-    const otp = generateRandomOTP().toString();
-
-    const expiresAt = new Date(Date.now() + 20 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); 
 
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-            user: 'ifyomejua9722@gmail.com', 
-            pass: 'fpjzfnraevykrmgm',  
+            user: 'officialsrisingsun@gmail.com',
+            pass: 'ibfg osdx rpay etwx ',
         },
     });
 
     const mailOptions = {
-        from: 'ifyomejua9722@gmail.com', 
+        from: `'Rising Sun Inc' <${process.env.EMAIL_USER}>`,
         to: email,
-        subject: 'Rising Sun Inc',
-        text: `Your One Time Password is ${otp}, it will expire in 20 mins`,
+        subject,
+        html: sendRegistrationOTP(email, otp),
     };
 
     try {
@@ -40,13 +37,13 @@ export async function requestOtp(user: { email: string }): Promise<Otp> {
             expiresAt,
         });
 
-        return { code: otp, expiresAt }; 
+        return { code: otp, expiresAt };
     } catch (error) {
-        console.error('Error sending email:', error);
+        console.error('Error sending OTP:', error);
         throw new Error('Failed to send OTP');
     }
+}
 
-}  
 
 
 export const deleteOtp = async (email: string) => {
@@ -54,6 +51,5 @@ export const deleteOtp = async (email: string) => {
         await OtpModel.deleteOne({ email });
     } catch (error) {
         console.error("Failed to delete OTP:", error);
-        // Optionally handle the error or log it
     }
 };
