@@ -1,37 +1,55 @@
 import User from "../../model/user.model";
 import { Response, Request } from "express"
-import { requestOtp, deleteOtp } from "../../services/auth/requestOtp";
+import { sendOtp, deleteOtp } from "../../services/auth/sendOtp";
 import { handle500Errors } from "../../util/api-response";
 import { verifyOtp } from "../../services/auth/verifyOtp";
 import { generateAcctID, generateReferalId } from "../../services/auth/generateId";
 import jwt from 'jsonwebtoken';
+import { generateRandomOTP } from "../../util/util-gen";
 
 
 
 
 const sendSignupOtp = async (req: Request, res: Response) => {
     const { email } = req.body;
+
     try {
-        const user = await User.findOne({ email })
-        if(user) return res.send({ status: 409, msg: 'A user with this email already  exist, please login'});
-        
-        const otp = await requestOtp({ email });
+        // Check if user already exists
+        const user = await User.findOne({ email });
+        if (user) {
+            return res.status(409).send({
+                status: 409,
+                msg: 'A user with this email already exists, please login',
+            });
+        }
 
-        res.status(200).send({ status: 200, msg: 'OTP sent successfully!', code: otp});
-    } catch (error) {
-         handle500Errors(error, res)
+        // Generate OTP
+        const otp = generateRandomOTP().toString();
 
+        // Send OTP email
+        await sendOtp({ email }, 'Rising Sun OTP Verification', otp);
+
+        // Success response
+        res.status(200).send({
+            status: 200,
+            msg: 'OTP sent successfully! Please check your email.',
+        });
+    } catch (error: any) {
+        res.status(500).json({msg: error.message})
+        // handle500Errors(error, res);
     }
-}
+};
 
 
 const sendLoginOtp = async (req: Request, res: Response) => {
     const { email } = req.body;
     try {
         const user = await User.findOne({ email })
-        if(!user) return res.send({ status: 404, msg: 'A user with this email does not exist'});
+        if(!user) return res.status(409).send({ status: 404, msg: 'A user with this email does not exist'});
+
+        const otp = generateRandomOTP().toString();
         
-        const otp = await requestOtp({ email });
+        await sendOtp({ email }, 'Rising Sun OTP Verification', otp);
 
         res.status(200).send({ status: 200, msg: 'OTP sent successfully!', code: otp});
     } catch (error) {
@@ -50,7 +68,7 @@ const signUp = async (req: Request, res: Response) => {
         
         const isOtpValid = await verifyOtp(email, code);
 
-        if (!isOtpValid) return res.send({ status: 403, message: 'Otp not valid or has expired' })
+        if (!isOtpValid) return res.status(403).send({ status: 403, message: 'Otp not valid or has expired' })
 
 
         const generatedId = await generateAcctID();
