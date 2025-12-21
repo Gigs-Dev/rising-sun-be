@@ -1,0 +1,14 @@
+# File nodemodules
+node_modules
+
+
+# Environment vairables
+.env
+
+.env.local
+
+.env.development
+
+.env.production
+
+# Databases
