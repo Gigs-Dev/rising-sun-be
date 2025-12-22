@@ -48,7 +48,7 @@ export const globalErrorHandler = (
 
   const isDev = process.env.NODE_ENV === "development";
 
-  // 🔥 DEV vs PROD response
+  // DEV ERROR response
   if (isDev) {
     res.status(statusCode).json({
       success: false,
@@ -57,7 +57,7 @@ export const globalErrorHandler = (
       error: err
     });
   } else {
-    // Production: hide internals
+    // Production: hide details
     res.status(statusCode).json({
       success: false,
       message
