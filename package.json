@@ -4,7 +4,6 @@
   "description": "",
   "license": "ISC",
   "author": "Tompolo",
-  "type": "module",
   "main": "app.ts",
   "scripts": {
     "start": "node dist/build/app.js",
@@ -27,6 +26,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
+    "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
