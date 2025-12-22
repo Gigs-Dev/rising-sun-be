@@ -5,7 +5,7 @@ import compression from 'compression'
 import helmet from 'helmet';
 
 import { PORT } from './config/env.config';
-import connectDB from './config/db';
+import connectDB from './lib/db';
 import { globalErrorHandler } from './middleware/errorHandler';
 
 

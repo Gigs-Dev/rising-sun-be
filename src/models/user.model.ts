@@ -33,7 +33,9 @@ const userSchema = new Schema({
     address: {
         type: String
     }
-})
+}, 
+    { timestamps: true }
+)
 
 const User = model('User', userSchema);
 

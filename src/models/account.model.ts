@@ -1,10 +1,9 @@
-import mongoose, { model, Schema, Types } from "mongoose";
+import mongoose, { model, Schema } from "mongoose";
 
 const accountSchema = new Schema({
     userId: {
         type: Schema.Types.ObjectId,
         ref: 'User',
-        unique: true
     }
 })
 
