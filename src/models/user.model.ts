@@ -1,8 +1,9 @@
 import mongoose, { model, Schema } from "mongoose";
 import { doHash } from "../utils/hash-func";
+import { UserType } from "../types/type";
 
 
-const userSchema = new Schema({
+const userSchema = new Schema<UserType>({
     fullName: {
         type: String,
         required: true
@@ -47,7 +48,7 @@ const userSchema = new Schema({
 // =====================
 userSchema.pre('save', async function(){
 
-    const user = this as any;
+    const user = this as UserType;
 
     if (!user.isModified('password')) return;
 
