@@ -18,13 +18,14 @@ export const signUp = async (req: Request, res: Response): Promise<any> => {
 
     if(!userExists) {
         return sendResponse(res, HttpStatus.CONFLICT_REQUEST, false, 'User already exist', null)
-    } 
+    }
 
     const user = new User({
         email,
         fullName,
         password,
         phoneNumber,
+        referalCode: email,
         ...req.body
     })
 
@@ -92,3 +93,11 @@ export const signIn = async (req: Request, res: Response): Promise<void> => {
 
     sendResponse(res, HttpStatus.OK, true, 'Login successfully!', user)
 }
+
+
+export const signOut = async (req:Request, res:Response) => {
+    res.clearCookie('Authorization')
+    .status(200)
+    .json({success: true, message: 'Logged out successfully!'})
+}
+
