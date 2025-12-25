@@ -7,7 +7,7 @@ import { HttpStatus } from "../constants/http-status";
 
 
 
-export const signUp = async (req: Request, res: Response): Promise<void> => {
+export const signUp = async (req: Request, res: Response): Promise<any> => {
     const { email, referringUserCode, fullName, password, phoneNumber } = req.body;
 
     if(!email || !referringUserCode || !fullName || !phoneNumber || !password){
@@ -17,8 +17,7 @@ export const signUp = async (req: Request, res: Response): Promise<void> => {
     const userExists = await User.findOne({email});
 
     if(!userExists) {
-        sendResponse(res, HttpStatus.CONFLICT_REQUEST, false, 'User already exist', null)
-        return;
+        return sendResponse(res, HttpStatus.CONFLICT_REQUEST, false, 'User already exist', null)
     } 
 
     const user = new User({
