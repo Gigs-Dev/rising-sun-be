@@ -1,20 +1,27 @@
-export interface UserType {
+import { Document } from "mongoose";
+
+export interface UserType  extends Document {
     fullName: string;
     email: string;
     password: string;
-    referalCode: string;
-    referrals: string[];
     profilePics: string;
     dob: Date;
     address: string;
-    otp: string;
-    otpExpiresAt: Date;
-    isVerified: boolean;
     referringUserCode: string;
     phoneNumber: number
 }
 
 
+interface OtpDocument extends Document {
+    email: string;
+    code: string;
+    expiresAt: Date;
+}
+
+
+
+
 export interface AccountType {
 
 }
+

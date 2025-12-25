@@ -13,6 +13,7 @@ const userSchema = new Schema<UserType>({
         required: true,
         unique: true,
         lowercase: true,
+        pattern: ['^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$']
     },
     phoneNumber: {
         type: Number,
@@ -27,15 +28,6 @@ const userSchema = new Schema<UserType>({
     },
     referringUserCode: {
         type: String,
-        unique: true,
-    },
-    referalCode: {
-        type: String,
-        unique: true,
-    },
-    referrals: {
-        type: [String],
-        default: []
     },
     profilePics: {
         type: String
@@ -46,10 +38,6 @@ const userSchema = new Schema<UserType>({
     address: {
         type: String
     },
-    // OTP fields
-    otp: { type: String },
-    otpExpiresAt: { type: Date },
-    isVerified: { type: Boolean, default: false },
 }, 
     { timestamps: true }
 )

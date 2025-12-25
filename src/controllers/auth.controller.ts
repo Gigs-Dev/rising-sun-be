@@ -4,21 +4,65 @@ import { sendResponse } from "../utils/sendResponse";
 import { generateOTP, hashValidator } from "../utils/func";
 import { AppError } from "../utils/app-error";
 import { HttpStatus } from "../constants/http-status";
+import transport from "../services/sendEmail";
+import { USER_EMAIL } from "../config/env.config";
+import { registrationOTPBody } from '../templates/mailTemplate'
 
 
 
 export const signUp = async (req: Request, res: Response): Promise<any> => {
+
+    const { email } = req.body;
+
+    const userExists = await User.findOne({ email });
+
+    if(userExists) {
+        return sendResponse(res, HttpStatus.CONFLICT_REQUEST, false, 'User already exist', null)
+    }
+
+    //  Generate OTP
+    const otp = generateOTP()
+    const otpExpiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes from now
+
+    //  Generate OTP
+    let info = await transport.sendMail({
+        from: USER_EMAIL,
+        to: email,
+        subject: 'RisBet Account Verification',
+        html: registrationOTPBody(email, otp)
+    })
+
+    sendResponse(res, HttpStatus.OK, true, 'User created successfully!', );
+
+}
+
+
+export const verifySignUpOTP = async (req: Request, res: Response): Promise<any> => {
+
+
     const { email, referringUserCode, fullName, password, phoneNumber } = req.body;
 
     if(!email || !referringUserCode || !fullName || !phoneNumber || !password){
         throw new AppError('Missing required fields', HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
-    const userExists = await User.findOne({email});
+    // const user = await User.findOne({ email });
 
-    if(!userExists) {
-        return sendResponse(res, HttpStatus.CONFLICT_REQUEST, false, 'User already exist', null)
-    }
+    // if (!user) {
+    //     throw new AppError('User not found or does not exist', HttpStatus.NOT_FOUND)
+    // } 
+
+    // if (user.isVerified) {
+    //     throw new AppError('User already verified, please login', HttpStatus.NOT_ALLOWED)
+    // } 
+
+    // if (user.otp !== otp) {
+    //      throw new AppError('OTP not valid or expired', HttpStatus.NOT_ALLOWED)
+    // } 
+
+    // if (user.otpExpiresAt < Date.now()) {
+    //     return res.status(400).json({ message: 'OTP expired' });
+    // } 
 
     const user = new User({
         email,
@@ -29,40 +73,6 @@ export const signUp = async (req: Request, res: Response): Promise<any> => {
         ...req.body
     })
 
-    //  Generate OTP
-    const otp = generateOTP();
-    user.otp = otp;
-    user.otpExpiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes from now
-
-    sendResponse(res, HttpStatus.CREATED, true, 'User created successfully!', user);
-
-}
-
-
-export const verifyOTP = async (req: Request, res: Response): Promise<any> => {
-    const { email, otp } = req.body;
-
-    const user = await User.findOne({ email });
-
-    if (!user) {
-        throw new AppError('User not found or does not exist', HttpStatus.NOT_FOUND)
-    } 
-
-    if (user.isVerified) {
-        throw new AppError('User already verified, please login', HttpStatus.NOT_ALLOWED)
-    } 
-
-    if (user.otp !== otp) {
-         throw new AppError('OTP not valid or expired', HttpStatus.NOT_ALLOWED)
-    } 
-
-    if (user.otpExpiresAt < Date.now()) {
-        return res.status(400).json({ message: 'OTP expired' });
-    } 
-
-    user.isVerified = true;
-    user.otp = undefined;
-    user.otpExpiresAt = undefined;
     await user.save();
 
     res.json({ message: 'Email verified successfully' });

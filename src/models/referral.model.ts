@@ -5,6 +5,18 @@ const referralSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true
+    },
+    referrals: {
+        type: [String],
+        default: []
+    },
+    referalCode: {
+        type: String,
+        unique: true,
+    },
+    referralAmt: {
+        type: Number,
+        default: 0
     }
 })
 
