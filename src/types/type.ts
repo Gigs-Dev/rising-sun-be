@@ -10,5 +10,11 @@ export interface UserType {
     otp: string;
     otpExpiresAt: Date;
     isVerified: boolean;
-    
+    referringUserCode: string;
+    phoneNumber: number
+}
+
+
+export interface AccountType {
+
 }
