@@ -6,7 +6,6 @@
   "author": "Tompolo",
   "main": "app.ts",
   "scripts": {
-    "start": "yarn run build && yarn run start-prod",
     "build": "tsc -p .",
     "start-prod": "node dist/app.js",
     "dev": "tsnd --respawn --transpile-only --watch --trace-warnings --env-file=.env src/app.ts",
