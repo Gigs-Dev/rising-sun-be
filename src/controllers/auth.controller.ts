@@ -2,117 +2,94 @@ import { Request, Response } from "express";
 import User from "../models/user.model";
 import jwt from 'jsonwebtoken'
 import { sendResponse } from "../utils/sendResponse";
-import { generateOTP, hashValidator, hmacHash } from "../utils/func";
+import { doHash, hashValidator } from "../utils/func";
 import { AppError } from "../utils/app-error";
 import { HttpStatus } from "../constants/http-status";
-import transport from "../services/sendEmail";
-import { USER_EMAIL } from "../config/env.config";
-import { registrationOTPBody } from '../templates/mailTemplate';
+import { AuthServices } from "../services/AuthServices";
+import OtpService from "../services/OtpServices";
 import { OtpModel } from "../models/otp.model";
 
 
 
+const authServices = new AuthServices();
 
+// Request the sign-up otp
 export const signUp = async (req: Request, res: Response): Promise<any> => {
 
     const { email } = req.body;
 
-    const userExists = await User.findOne({ email });
+      // Check if user exists
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            return sendResponse(
+            res,
+            HttpStatus.CONFLICT_REQUEST,
+            false,
+            "User already exists",
+            null
+            );
+        }
 
-    if(userExists) {
-        return sendResponse(res, HttpStatus.CONFLICT_REQUEST, false, 'User already exist', null)
-    }
+        // Use OTP service
+        const result = await OtpService.sendSignUpOtp(email);
 
-    //  Generate OTP
-    const otp = generateOTP()
-    const otpExpiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes from now
-
-    //  send mail
-    let info = await transport.sendMail({
-        from: USER_EMAIL,
-        to: email,
-        subject: 'RisBet Account Verification',
-        html: registrationOTPBody(email, otp)
-    })
-
-    // Save to DB
-    if(info.accepted[0] === email){
-        const data = await OtpModel.create({
-            email,
-            otp: hmacHash(otp),
-            expiresAt: otpExpiresAt
-        })
-
-        await data.save()
-    }
-
-    sendResponse(res, HttpStatus.OK, true, 'OTP sent! Please check your email to verify your account', );
+        return sendResponse(res, result.success ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR, result.success, result.message);
 
 }
 
 
+// Verify the sign-up OTP
 export const verifySignUpOTP = async (req: Request, res: Response): Promise<any> => {
 
+    const { fullName, email, phoneNumber, password, otp, referringUserCode } = req.body;
 
-    const { email, otp, referringUserCode, fullName, password, phoneNumber } = req.body;
-
-    if(!email || !referringUserCode || !fullName || !phoneNumber || !password){
-        throw new AppError('Missing required fields', HttpStatus.UNPROCESSABLE_ENTITY);
+    const isVerified = authServices.verifyEmailOtp(email, otp);
+    if (!isVerified) {
+        throw new AppError("OTP not valid or expired", HttpStatus.FORBIDDEN);
     }
 
-    // const user = await User.findOne({ email });
+    if (!email || !fullName || !phoneNumber || !password) {
+        throw new AppError(
+        "Missing required fields",
+        HttpStatus.UNPROCESSABLE_ENTITY
+        );
+    }
 
-    // if (!user) {
-    //     throw new AppError('User not found or does not exist', HttpStatus.NOT_FOUND)
-    // } 
-
-    // if (user.isVerified) {
-    //     throw new AppError('User already verified, please login', HttpStatus.NOT_ALLOWED)
-    // } 
-
-    // if (user.otp !== otp) {
-    //      throw new AppError('OTP not valid or expired', HttpStatus.NOT_ALLOWED)
-    // } 
-
-    // if (user.otpExpiresAt < Date.now()) {
-    //     return res.status(400).json({ message: 'OTP expired' });
-    // } 
-
-    const user = new User({
-        email,
+    const user = await AuthServices.verifySignupAndCreateUser({
         fullName,
-        password,
+        email,
         phoneNumber,
-        referalCode: email,
-        ...req.body
-    })
+        password,
+        referringUserCode,
+    });
 
-    await user.save();
-
-    res.json({ message: 'Email verified successfully' });
+    return res.status(HttpStatus.CREATED).json({
+        success: true,
+        message: "Account created successfully",
+        data: user,
+    });
 
 }
 
-
-export const signIn = async (req: Request, res: Response): Promise<void> => {
+// sign-in
+export const signIn = async (req: Request, res: Response): Promise<any> => {
 
     const { email, password } = req.body;
 
     if(!email || !password){
-        throw new AppError('Missing required fields', HttpStatus.BAD_REQUEST)
+        throw new AppError('Missing required fields', HttpStatus.UNPROCESSABLE_ENTITY)
     }
 
     const user = await User.findOne({ email }).select('+password');
 
     if(!user){
-        sendResponse(res, 401, false, 'Invalid credentials', null);
-        return
+        return sendResponse(res, 401, false, 'Invalid credentials', null);
     }
 
     const isPasswordValid = await hashValidator(password, user.password);
 
     if(!isPasswordValid){
-        sendResponse(res, HttpStatus.UNAUTHORIZED, false, 'Please provide a valid credential', null)
+        return sendResponse(res, HttpStatus.UNAUTHORIZED, false, 'Please provide a valid credential', null);
     }
 
     const token = jwt.sign({ user: user._id, email: user.email }, 'jwt-secret', { expiresIn: '15m' })
@@ -121,9 +98,60 @@ export const signIn = async (req: Request, res: Response): Promise<void> => {
 }
 
 
+// sign-out
 export const signOut = async (req:Request, res:Response) => {
     res.clearCookie('Authorization')
     .status(200)
     .json({success: true, message: 'Logged out successfully!'})
 }
 
+
+export const forgortPassword = async (req:Request, res:Response) => {
+
+    const { email } = req.body;
+
+        // Check if user exists
+        const userExists = await User.findOne({ email });
+        if (!userExists) {
+            return sendResponse(
+            res,
+            HttpStatus.FORBIDDEN,
+            false,
+            "User does not exist",
+            null
+            );
+        }
+
+        // Use OTP service
+        const result = await OtpService.sendForgotPasswordOtp(email);
+
+        return sendResponse(res, result.success ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR, result.success, result.message);
+
+}
+
+
+// verify password 
+export const verfiyForgotPassword = async (req:Request, res:Response): Promise<any> => {
+    const { email, otp, password } = req.body;
+
+    if (!email || !otp || !password) {
+        throw new AppError("Missing required fields", HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    const isVerified = authServices.verifyEmailOtp(email, otp);
+    if (!isVerified) {
+        return sendResponse(res, HttpStatus.FORBIDDEN, false, 'OTP not valid or expired!')
+    }
+
+     const user = await User.findOne({ email });
+    if (!user) {
+        throw new AppError("User not found", HttpStatus.NOT_FOUND);
+    }
+
+    user.password = await doHash(password, 10);
+
+    await Promise.all([user.save(), OtpModel.deleteMany({ email })])
+
+    return sendResponse(res, HttpStatus.OK, true, "Password reset successfully!");
+
+}

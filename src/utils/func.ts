@@ -22,6 +22,14 @@ export const hmacHash = (data: string) => {
   return result;
 }
 
+export const verifyHmac = (data: string, receivedHash: string): boolean => {
+  const expectedHash = hmacHash(data);
+  return crypto.timingSafeEqual(
+    Buffer.from(expectedHash, 'hex'),
+    Buffer.from(receivedHash, 'hex')
+  );
+};
+
 
 export const generateReferalCode = () => {
 
