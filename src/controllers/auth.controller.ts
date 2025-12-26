@@ -2,11 +2,13 @@ import { Request, Response } from "express";
 import User from "../models/user.model";
 import jwt from 'jsonwebtoken'
 import { sendResponse } from "../utils/sendResponse";
-import { hashValidator } from "../utils/func";
+import { doHash, hashValidator } from "../utils/func";
 import { AppError } from "../utils/app-error";
 import { HttpStatus } from "../constants/http-status";
 import { AuthServices } from "../services/AuthServices";
 import OtpService from "../services/OtpServices";
+import { OtpModel } from "../models/otp.model";
+
 
 
 const authServices = new AuthServices();
@@ -70,25 +72,24 @@ export const verifySignUpOTP = async (req: Request, res: Response): Promise<any>
 }
 
 // sign-in
-export const signIn = async (req: Request, res: Response): Promise<void> => {
+export const signIn = async (req: Request, res: Response): Promise<any> => {
 
     const { email, password } = req.body;
 
     if(!email || !password){
-        throw new AppError('Missing required fields', HttpStatus.BAD_REQUEST)
+        throw new AppError('Missing required fields', HttpStatus.UNPROCESSABLE_ENTITY)
     }
 
     const user = await User.findOne({ email }).select('+password');
 
     if(!user){
-        sendResponse(res, 401, false, 'Invalid credentials', null);
-        return
+        return sendResponse(res, 401, false, 'Invalid credentials', null);
     }
 
     const isPasswordValid = await hashValidator(password, user.password);
 
     if(!isPasswordValid){
-        sendResponse(res, HttpStatus.UNAUTHORIZED, false, 'Please provide a valid credential', null)
+        return sendResponse(res, HttpStatus.UNAUTHORIZED, false, 'Please provide a valid credential', null);
     }
 
     const token = jwt.sign({ user: user._id, email: user.email }, 'jwt-secret', { expiresIn: '15m' })
@@ -129,7 +130,28 @@ export const forgortPassword = async (req:Request, res:Response) => {
 }
 
 
+// verify password 
+export const verfiyForgotPassword = async (req:Request, res:Response): Promise<any> => {
+    const { email, otp, password } = req.body;
 
-export const verfiyForgotPassword = async (req:Request, res:Response) => {
+    if (!email || !otp || !password) {
+        throw new AppError("Missing required fields", HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    const isVerified = authServices.verifyEmailOtp(email, otp);
+    if (!isVerified) {
+        return sendResponse(res, HttpStatus.FORBIDDEN, false, 'OTP not valid or expired!')
+    }
+
+     const user = await User.findOne({ email });
+    if (!user) {
+        throw new AppError("User not found", HttpStatus.NOT_FOUND);
+    }
+
+    user.password = await doHash(password, 10);
+
+    await Promise.all([user.save(), OtpModel.deleteMany({ email })])
+
+    return sendResponse(res, HttpStatus.OK, true, "Password reset successfully!");
 
 }
