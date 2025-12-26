@@ -8,5 +8,10 @@ export const {
     PORT,
     NODE_ENV,
     DB_URI,
+    USER_EMAIL,
+    USER_PASSWORD,
+    FLW_PUBLIC_KEY,
+    FLW_SECRET_KEY,
+    FLW_ENCRYP_KEY,
     CLIENT_URL
 } = process.env;

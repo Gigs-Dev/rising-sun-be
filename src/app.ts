@@ -9,6 +9,12 @@ import connectDB from './lib/db';
 import { globalErrorHandler } from './middleware/errorHandler';
 
 
+// =============
+// Routes Import
+// =============
+import authRouter from './routes/auth.route';
+
+
 const app = express();
 
 // middlewares
@@ -18,6 +24,12 @@ app.use(cors());
 app.use(morgan('common'))
 app.use(compression())
 app.use(helmet())
+
+
+// ============
+// Routes Usage
+// ============
+app.use('/api/v1/auth', authRouter)
 
 
 

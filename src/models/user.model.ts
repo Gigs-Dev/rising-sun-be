@@ -1,28 +1,33 @@
 import mongoose, { model, Schema } from "mongoose";
+import { doHash } from "../utils/func";
+import { UserType } from "../types/type";
 
 
-const userSchema = new Schema({
+const userSchema = new Schema<UserType>({
     fullName: {
         type: String,
-        required: true
+        required: true,
     },
     email: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        lowercase: true,
+        pattern: ['^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$']
+    },
+    phoneNumber: {
+        type: Number,
+        required: true,
+        select: false,
     },
     password: {
         type: String,
         required: true,
-        minLength: 6,
-        select: false
+        minLength: [8, 'Passsword must be at least 8 characters!'],
+        select: false,
     },
-    referalCode: {
-        type: String
-    },
-    referrals: {
-        type: [String],
-        default: []
+    referringUserCode: {
+        type: String,
     },
     profilePics: {
         type: String
@@ -32,11 +37,24 @@ const userSchema = new Schema({
     },
     address: {
         type: String
-    }
+    },
 }, 
     { timestamps: true }
 )
 
-const User = model('User', userSchema);
+// =====================
+// PRE-SAVE HOOK
+// =====================
+userSchema.pre('save', async function(){
+
+    const user = this as mongoose.HydratedDocument<UserType>;
+
+    if (!user.isModified('password')) return;
+
+    user.password = await doHash(this.password, 10);
+
+})
+
+const User = model<UserType>('User', userSchema);
 
 export default User;

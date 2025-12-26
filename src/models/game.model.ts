@@ -4,6 +4,7 @@ const gameSchema = new Schema({
     userId: {
         userId: Schema.Types.ObjectId,
         ref: 'User',
+        required: true
     },
 })
 
