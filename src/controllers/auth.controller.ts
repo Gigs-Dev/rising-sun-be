@@ -43,6 +43,11 @@ export const verifySignUpOTP = async (req: Request, res: Response): Promise<any>
 
     const { fullName, email, phoneNumber, password, otp, referringUserCode } = req.body;
 
+    if (referringUserCode === email) {
+        throw new AppError("You cannot refer yourself", HttpStatus.BAD_REQUEST);
+    }
+
+
     const isVerified = authServices.verifyEmailOtp(email, otp);
     if (!isVerified) {
         throw new AppError("OTP not valid or expired", HttpStatus.FORBIDDEN);
