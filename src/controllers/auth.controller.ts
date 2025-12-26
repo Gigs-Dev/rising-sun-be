@@ -1,12 +1,15 @@
 import { Request, Response } from "express";
 import User from "../models/user.model";
+import jwt from 'jsonwebtoken'
 import { sendResponse } from "../utils/sendResponse";
-import { generateOTP, hashValidator } from "../utils/func";
+import { generateOTP, hashValidator, hmacHash } from "../utils/func";
 import { AppError } from "../utils/app-error";
 import { HttpStatus } from "../constants/http-status";
 import transport from "../services/sendEmail";
 import { USER_EMAIL } from "../config/env.config";
-import { registrationOTPBody } from '../templates/mailTemplate'
+import { registrationOTPBody } from '../templates/mailTemplate';
+import { OtpModel } from "../models/otp.model";
+
 
 
 
@@ -24,7 +27,7 @@ export const signUp = async (req: Request, res: Response): Promise<any> => {
     const otp = generateOTP()
     const otpExpiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes from now
 
-    //  Generate OTP
+    //  send mail
     let info = await transport.sendMail({
         from: USER_EMAIL,
         to: email,
@@ -32,7 +35,18 @@ export const signUp = async (req: Request, res: Response): Promise<any> => {
         html: registrationOTPBody(email, otp)
     })
 
-    sendResponse(res, HttpStatus.OK, true, 'User created successfully!', );
+    // Save to DB
+    if(info.accepted[0] === email){
+        const data = await OtpModel.create({
+            email,
+            otp: hmacHash(otp),
+            expiresAt: otpExpiresAt
+        })
+
+        await data.save()
+    }
+
+    sendResponse(res, HttpStatus.OK, true, 'OTP sent! Please check your email to verify your account', );
 
 }
 
@@ -40,7 +54,7 @@ export const signUp = async (req: Request, res: Response): Promise<any> => {
 export const verifySignUpOTP = async (req: Request, res: Response): Promise<any> => {
 
 
-    const { email, referringUserCode, fullName, password, phoneNumber } = req.body;
+    const { email, otp, referringUserCode, fullName, password, phoneNumber } = req.body;
 
     if(!email || !referringUserCode || !fullName || !phoneNumber || !password){
         throw new AppError('Missing required fields', HttpStatus.UNPROCESSABLE_ENTITY);
@@ -101,7 +115,9 @@ export const signIn = async (req: Request, res: Response): Promise<void> => {
         sendResponse(res, HttpStatus.UNAUTHORIZED, false, 'Please provide a valid credential', null)
     }
 
-    sendResponse(res, HttpStatus.OK, true, 'Login successfully!', user)
+    const token = jwt.sign({ user: user._id, email: user.email }, 'jwt-secret', { expiresIn: '15m' })
+
+    sendResponse(res, HttpStatus.OK, true, 'Login successfully!', token)
 }
 
 

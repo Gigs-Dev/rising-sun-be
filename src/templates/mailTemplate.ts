@@ -112,8 +112,7 @@ const standardBody = (title: string, name: string, body: string, otp: string) =>
   </head>
   <body>
     <div class="container">
-      <img class="logo" src="https://res.cloudinary.com/daiiyjdvo/image/upload/v1720390793/logo_hpmxyz.png" alt="Banicoop Logo" />
-      <img class="banner" src="https://res.cloudinary.com/daiiyjdvo/image/upload/v1720390794/flyer_wyngwe.png" alt="Banicoop Flyer" />
+      
 
       <p>Hi ${name},</p>
       ${body}
@@ -172,3 +171,6 @@ export const resetPasswordOTPBody = (email: string, otp: string) => {
   );
 };
 
+
+// / <img class="logo" src="https://res.cloudinary.com/daiiyjdvo/image/upload/v1720390793/logo_hpmxyz.png" alt="Banicoop Logo" />
+// <img class="banner" src="https://res.cloudinary.com/daiiyjdvo/image/upload/v1720390794/flyer_wyngwe.png" alt="Banicoop Flyer" />

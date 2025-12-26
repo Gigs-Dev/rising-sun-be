@@ -12,7 +12,7 @@ export interface UserType  extends Document {
 }
 
 
-interface OtpDocument extends Document {
+export interface OtpDocument extends Document {
     email: string;
     code: string;
     expiresAt: Date;
