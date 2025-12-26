@@ -12,3 +12,8 @@ node_modules
 .env.production
 
 # Databases
+
+
+# Files
+dist
+
