@@ -2,17 +2,18 @@ import { Request, Response } from "express";
 import User from "../models/user.model";
 import jwt from 'jsonwebtoken'
 import { sendResponse } from "../utils/sendResponse";
-import { generateOTP, hashValidator, hmacHash } from "../utils/func";
+import { generateOTP, hashValidator, hmacHash, verifyHmac } from "../utils/func";
 import { AppError } from "../utils/app-error";
 import { HttpStatus } from "../constants/http-status";
 import transport from "../services/sendEmail";
 import { USER_EMAIL } from "../config/env.config";
 import { registrationOTPBody } from '../templates/mailTemplate';
 import { OtpModel } from "../models/otp.model";
+import { AuthServices } from "../services/AuthServices";
 
+const authServices = new AuthServices();
 
-
-
+// Request the sign-up otp
 export const signUp = async (req: Request, res: Response): Promise<any> => {
 
     const { email } = req.body;
@@ -51,44 +52,43 @@ export const signUp = async (req: Request, res: Response): Promise<any> => {
 }
 
 
+// Verify the sign-up OTP
 export const verifySignUpOTP = async (req: Request, res: Response): Promise<any> => {
 
+    const { fullName, email, phoneNumber, password, otp, referringUserCode } = req.body;
 
-    const { email, otp, referringUserCode, fullName, password, phoneNumber } = req.body;
+    const isVerified = authServices.verifyEmailOtp(email, otp);
 
-    if(!email || !referringUserCode || !fullName || !phoneNumber || !password){
+    if(!isVerified){
         throw new AppError('Missing required fields', HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
-    // const user = await User.findOne({ email });
+     const existingUser = await User.findOne({ email });
+        if (existingUser) {
+        return sendResponse(
+            res,
+            HttpStatus.CONFLICT_REQUEST,
+            false,
+            "User already exists",
+            null
+        );
+        }
 
-    // if (!user) {
-    //     throw new AppError('User not found or does not exist', HttpStatus.NOT_FOUND)
-    // } 
+    if(!email ||!fullName || !phoneNumber || !password){
+        throw new AppError('Missing required fields', HttpStatus.UNPROCESSABLE_ENTITY);
+    }
 
-    // if (user.isVerified) {
-    //     throw new AppError('User already verified, please login', HttpStatus.NOT_ALLOWED)
-    // } 
+    const user = await User.create({
+      fullName,
+      email,
+      phoneNumber,
+      password,
+      referringUserCode,
+      ...req.body
+    });
 
-    // if (user.otp !== otp) {
-    //      throw new AppError('OTP not valid or expired', HttpStatus.NOT_ALLOWED)
-    // } 
 
-    // if (user.otpExpiresAt < Date.now()) {
-    //     return res.status(400).json({ message: 'OTP expired' });
-    // } 
-
-    const user = new User({
-        email,
-        fullName,
-        password,
-        phoneNumber,
-        referalCode: email,
-        ...req.body
-    })
-
-    await user.save();
-
+    
     res.json({ message: 'Email verified successfully' });
 
 }
