@@ -7,7 +7,7 @@
   "main": "app.ts",
   "scripts": {
     "start": "yarn run build && yarn run start-prod",
-    "build": "rimraf ./dist && tsc -p .",
+    "build": "tsc -p .",
     "start-prod": "node dist/app.js",
     "dev": "tsnd --respawn --transpile-only --watch --trace-warnings --env-file=.env src/app.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
