@@ -5,7 +5,26 @@ const accountSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true
-    }
+    },
+    walletId: {
+        type: String,
+        required: true,
+        unique: true,
+        index: true
+    },
+    acctNum: {
+        type: String,
+        required: true,
+    },
+    pin: {
+        type: String,
+        required: true,
+    },
+    acctBal: {
+       type: Number,
+       default: 0
+    },
+
 })
 
 const Account = model('Account', accountSchema);

@@ -13,6 +13,7 @@ import { globalErrorHandler } from './middleware/errorHandler';
 // Routes Import
 // =============
 import authRouter from './routes/auth.route';
+import userRouter from './routes/user.route';
 
 
 const app = express();
@@ -29,12 +30,18 @@ app.use(helmet())
 // ============
 // Routes Usage
 // ============
-app.use('/api/v1/auth', authRouter)
+app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/users', userRouter);
 
 
 
 // Global error
 app.use(globalErrorHandler)
+
+console.log({
+  NODE_ENV: process.env.NODE_ENV,
+  DB_URI: process.env.DB_URI ? "SET" : "MISSING",
+});
 
 app.listen(PORT, async () => {
     console.log(`Server started at port ${PORT}`)

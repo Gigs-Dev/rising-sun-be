@@ -1,8 +1,10 @@
 import { config } from 'dotenv';
 
-config({
-    path: `./.env.${process.env.NODE_ENV || 'development'}`
-})
+if (process.env.NODE_ENV !== "production") {
+  config({
+    path: `.env.${process.env.NODE_ENV || "development"}`
+  });
+}
 
 export const {
     PORT,
@@ -15,3 +17,4 @@ export const {
     FLW_ENCRYP_KEY,
     CLIENT_URL
 } = process.env;
+
