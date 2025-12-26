@@ -4,7 +4,7 @@
   "description": "",
   "license": "ISC",
   "author": "Tompolo",
-  "main": "app.ts",
+  "main": "dist/app.js",
   "scripts": {
     "dev": "tsnd --respawn --transpile-only --watch --trace-warnings --env-file=.env src/app.ts",
     "build": "rm -rf dist && tsc -p .",
