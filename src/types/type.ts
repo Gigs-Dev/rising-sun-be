@@ -8,7 +8,7 @@ export interface UserType  extends Document {
     dob: Date;
     address: string;
     referringUserCode: string;
-    phoneNumber: number
+    phoneNumber: string
 }
 
 
@@ -18,6 +18,13 @@ export interface OtpDocument extends Document {
     expiresAt: Date;
 }
 
+export interface VerifySignupDTO {
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  password: string;
+  referringUserCode?: string;
+}
 
 
 

@@ -1,5 +1,11 @@
+import mongoose from "mongoose";
 import { OtpModel } from "../models/otp.model";
 import { hmacHash } from "../utils/func";
+import { VerifySignupDTO } from "../types/type";
+import User from "../models/user.model";
+import { AppError } from "../utils/app-error";
+import { HttpStatus } from "../constants/http-status";
+import ReferralService from "./ReferralService";
 
 const MAX_OTP_ATTEMPTS = 5;
 
@@ -45,10 +51,67 @@ export class AuthServices {
     }
 
     /**
-     * ✅ OTP is valid
+     * OTP is valid
      * Mark as verified (temporary state)
      */
     otpRecord.verified = true;
     await otpRecord.save();
   }
+
+
+
+  static async verifySignupAndCreateUser(data: VerifySignupDTO) {
+    const session = await mongoose.startSession();
+
+    try {
+      session.startTransaction();
+
+      const { fullName, email, phoneNumber, password, referringUserCode } =
+        data;
+
+      const existingUser = await User.findOne({ email }).session(session);
+      if (existingUser) {
+        throw new AppError(
+          "User already exists",
+          HttpStatus.CONFLICT_REQUEST
+        );
+      }
+
+      /** 1️⃣ Create user */
+      const user = new User({
+        fullName,
+        email,
+        phoneNumber, // string
+        password,
+      });
+
+      await user.save({ session });
+
+      /** 2️⃣ Create referral profile */
+      await ReferralService.createReferralProfile(
+        user._id,
+        email,
+        session
+      );
+
+      /** 3️⃣ Handle referral reward */
+      if (referringUserCode && referringUserCode !== email) {
+        await ReferralService.rewardReferrer(
+          referringUserCode,
+          email,
+          session
+        );
+      }
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return user;
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
+  }
+
 }

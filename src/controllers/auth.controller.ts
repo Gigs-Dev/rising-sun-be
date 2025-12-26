@@ -11,6 +11,7 @@ import { registrationOTPBody } from '../templates/mailTemplate';
 import { OtpModel } from "../models/otp.model";
 import { AuthServices } from "../services/AuthServices";
 
+
 const authServices = new AuthServices();
 
 // Request the sign-up otp
@@ -25,6 +26,8 @@ export const signUp = async (req: Request, res: Response): Promise<any> => {
     }
 
     //  Generate OTP
+    await OtpModel.deleteMany({ email });
+
     const otp = generateOTP()
     const otpExpiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes from now
 
@@ -58,38 +61,30 @@ export const verifySignUpOTP = async (req: Request, res: Response): Promise<any>
     const { fullName, email, phoneNumber, password, otp, referringUserCode } = req.body;
 
     const isVerified = authServices.verifyEmailOtp(email, otp);
-
-    if(!isVerified){
-        throw new AppError('Missing required fields', HttpStatus.UNPROCESSABLE_ENTITY);
+    if (!isVerified) {
+        throw new AppError("OTP not valid or expired", HttpStatus.FORBIDDEN);
     }
 
-     const existingUser = await User.findOne({ email });
-        if (existingUser) {
-        return sendResponse(
-            res,
-            HttpStatus.CONFLICT_REQUEST,
-            false,
-            "User already exists",
-            null
+    if (!email || !fullName || !phoneNumber || !password) {
+        throw new AppError(
+        "Missing required fields",
+        HttpStatus.UNPROCESSABLE_ENTITY
         );
-        }
-
-    if(!email ||!fullName || !phoneNumber || !password){
-        throw new AppError('Missing required fields', HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
-    const user = await User.create({
-      fullName,
-      email,
-      phoneNumber,
-      password,
-      referringUserCode,
-      ...req.body
+    const user = await AuthServices.verifySignupAndCreateUser({
+        fullName,
+        email,
+        phoneNumber,
+        password,
+        referringUserCode,
     });
 
-
-    
-    res.json({ message: 'Email verified successfully' });
+    return res.status(HttpStatus.CREATED).json({
+        success: true,
+        message: "Account created successfully",
+        data: user,
+    });
 
 }
 
