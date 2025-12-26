@@ -162,7 +162,7 @@ export const registrationOTPBody = (email: string, otp: string) => {
 };
 
 
-export const resetPasswordOTPBody = (email: string, otp: string) => {
+export const forgotPasswordOTPBody = (email: string, otp: string) => {
   return standardBody(
     "Reset Password Verification Mail",
     email,

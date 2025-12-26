@@ -27,6 +27,10 @@ export interface VerifySignupDTO {
 }
 
 
+export interface SendOtpResult {
+  success: boolean;
+  message: string;
+}
 
 export interface AccountType {
 

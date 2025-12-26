@@ -2,14 +2,11 @@ import { Request, Response } from "express";
 import User from "../models/user.model";
 import jwt from 'jsonwebtoken'
 import { sendResponse } from "../utils/sendResponse";
-import { generateOTP, hashValidator, hmacHash, verifyHmac } from "../utils/func";
+import { hashValidator } from "../utils/func";
 import { AppError } from "../utils/app-error";
 import { HttpStatus } from "../constants/http-status";
-import transport from "../services/sendEmail";
-import { USER_EMAIL } from "../config/env.config";
-import { registrationOTPBody } from '../templates/mailTemplate';
-import { OtpModel } from "../models/otp.model";
 import { AuthServices } from "../services/AuthServices";
+import OtpService from "../services/OtpServices";
 
 
 const authServices = new AuthServices();
@@ -19,38 +16,22 @@ export const signUp = async (req: Request, res: Response): Promise<any> => {
 
     const { email } = req.body;
 
-    const userExists = await User.findOne({ email });
+      // Check if user exists
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            return sendResponse(
+            res,
+            HttpStatus.CONFLICT_REQUEST,
+            false,
+            "User already exists",
+            null
+            );
+        }
 
-    if(userExists) {
-        return sendResponse(res, HttpStatus.CONFLICT_REQUEST, false, 'User already exist', null)
-    }
+        // Use OTP service
+        const result = await OtpService.sendSignUpOtp(email);
 
-    //  Generate OTP
-    await OtpModel.deleteMany({ email });
-
-    const otp = generateOTP()
-    const otpExpiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes from now
-
-    //  send mail
-    let info = await transport.sendMail({
-        from: USER_EMAIL,
-        to: email,
-        subject: 'RisBet Account Verification',
-        html: registrationOTPBody(email, otp)
-    })
-
-    // Save to DB
-    if(info.accepted[0] === email){
-        const data = await OtpModel.create({
-            email,
-            otp: hmacHash(otp),
-            expiresAt: otpExpiresAt
-        })
-
-        await data.save()
-    }
-
-    sendResponse(res, HttpStatus.OK, true, 'OTP sent! Please check your email to verify your account', );
+        return sendResponse(res, result.success ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR, result.success, result.message);
 
 }
 
@@ -88,7 +69,7 @@ export const verifySignUpOTP = async (req: Request, res: Response): Promise<any>
 
 }
 
-
+// sign-in
 export const signIn = async (req: Request, res: Response): Promise<void> => {
 
     const { email, password } = req.body;
@@ -116,9 +97,39 @@ export const signIn = async (req: Request, res: Response): Promise<void> => {
 }
 
 
+// sign-out
 export const signOut = async (req:Request, res:Response) => {
     res.clearCookie('Authorization')
     .status(200)
     .json({success: true, message: 'Logged out successfully!'})
 }
 
+
+export const forgortPassword = async (req:Request, res:Response) => {
+
+    const { email } = req.body;
+
+        // Check if user exists
+        const userExists = await User.findOne({ email });
+        if (!userExists) {
+            return sendResponse(
+            res,
+            HttpStatus.FORBIDDEN,
+            false,
+            "User does not exist",
+            null
+            );
+        }
+
+        // Use OTP service
+        const result = await OtpService.sendForgotPasswordOtp(email);
+
+        return sendResponse(res, result.success ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR, result.success, result.message);
+
+}
+
+
+
+export const verfiyForgotPassword = async (req:Request, res:Response) => {
+
+}
