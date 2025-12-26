@@ -9,7 +9,7 @@
     "dev": "tsnd --respawn --transpile-only --watch --trace-warnings --env-file=.env src/app.ts",
     "build": "rimraf ./dist && tsc -p .",
     "start-prod": "node dist/app.js",
-    "start": "npm run build && npm run start-prod",
+    "start": "yarn run build && yarn run start-prod",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
