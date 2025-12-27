@@ -7,7 +7,7 @@
   "main": "dist/app.js",
   "scripts": {
     "start:dev": "nodemon",
-    "build:prod": "rimraf ./dist && node --max-old-space-size=4096 -p .",
+    "build:prod": "rimraf ./dist && node --max-old-space-size=4096",
     "start": "yarn run build:prod && yarn start-prod",
     "dev": "tsnd --respawn --transpile-only --watch --trace-warnings --env-file=.env src/app.ts",
     "build": "rimraf ./dist && tsc -p .",
