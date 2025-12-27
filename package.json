@@ -6,12 +6,11 @@
   "author": "Tompolo",
   "main": "dist/app.js",
   "scripts": {
-    "start:dev": "nodemon",
+    "start:dev": "tsnd --respawn --transpile-only --watch --trace-warnings --env-file=.env src/app.ts",
     "build:prod": "rimraf ./dist && node --max-old-space-size=4096",
     "start": "yarn run build:prod && yarn start-prod",
-    "dev": "tsnd --respawn --transpile-only --watch --trace-warnings --env-file=.env src/app.ts",
     "build": "rimraf ./dist && tsc -p .",
-    "start-prod": "node dist/app.js"
+    "start-prod": "node dist/src/app.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
