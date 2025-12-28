@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import User from "../models/user.model";
 import { sendResponse } from "../utils/sendResponse";
-import mongoose from "mongoose";
 import { doHash, hashValidator } from "../utils/func";
 import { UserType } from "../types/type";
 import Referrals from "../models/referral.model";
@@ -64,9 +63,10 @@ export const updateUserDetails = async (req:Request, res: Response) => {
       fullName: user.fullName,
       email: user.email,
       profilePics: user.profilePics,
-      phoneNumber: user.phoneNumber
+      phoneNumber: user.phoneNumber,
+      address: user.address,
+      dob: user.dob
     });
-
 
 };
 
@@ -75,10 +75,6 @@ export const updatePassword = async (req:Request, res:Response) => {
     const userId = req.params.id;
     const { oldPassword, newPassword } = req.body;
 
-    /* -------------------- VALIDATIONS -------------------- */
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return sendResponse(res, 400, false, 'Invalid user ID');
-    }
 
     if (!oldPassword || !newPassword) {
       return sendResponse(
@@ -124,8 +120,18 @@ export const updatePassword = async (req:Request, res:Response) => {
 
 
 
-export const getUserReferals = async (req:Request, res: Response) => {
-    console.log('coming soon!!!')
+export const getMyReferrals = async (req:Request, res: Response) => {
+  const referral = await Referrals.findOne({ userId: req.user.id });
+
+  if (!referral || referral.referrals.length === 0) {
+    return sendResponse(res, 200, true, 'No referrals yet', []);
+  }
+
+  const users = await User.find({
+    _id: { $in: referral.referrals }
+  }).select('-password');
+
+  return sendResponse(res, 200, true, 'Referrals fetched', users);
 }
 
 
