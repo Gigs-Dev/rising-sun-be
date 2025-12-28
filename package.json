@@ -10,7 +10,7 @@
     "build:prod": "rimraf ./dist && tsc -p .",
     "build": "rimraf ./dist && tsc -p .",
     "start": "yarn run build:prod && yarn start-prod",
-    "start-prod": "node dist/src/app.js"
+    "start-prod": "node dist/app.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
