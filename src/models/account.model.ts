@@ -6,17 +6,11 @@ const accountSchema = new Schema({
         ref: 'User',
         required: true
     },
-    walletId: {
-        type: String,
-        required: true,
-        unique: true,
-        index: true
-    },
     acctNum: {
         type: String,
         required: true,
     },
-    pin: {
+    withdrawalPin: {
         type: String,
         required: true,
     },
@@ -24,7 +18,7 @@ const accountSchema = new Schema({
        type: Number,
        default: 0
     },
-
+    
 })
 
 const Account = model('Account', accountSchema);

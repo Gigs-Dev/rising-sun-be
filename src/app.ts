@@ -3,6 +3,7 @@ import morgan from 'morgan';
 import cors from 'cors';
 import compression from 'compression'
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 
 import { PORT } from './config/env.config';
 import connectDB from './lib/db';
@@ -20,6 +21,7 @@ import { RefreshToken } from './controllers/refreshToken.controller';
 const app = express();
 
 // middlewares
+app.use(cookieParser())
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(cors());

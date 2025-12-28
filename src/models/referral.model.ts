@@ -8,7 +8,6 @@ const referralSchema = new Schema(
       required: true,
       unique: true,
     },
-
     referralCode: {
       type: String,
       required: true,
@@ -16,12 +15,10 @@ const referralSchema = new Schema(
       lowercase: true,
       index: true,
     },
-
     referrals: {
       type: [String], 
       default: [],
     },
-
     referralAmt: {
       type: Number,
       default: 0,
