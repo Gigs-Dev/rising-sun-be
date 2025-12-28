@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { accessTokenTtl, refreshTokenTtl } from "../config/env.config";
 
 export const generateAccessToken = (payload: {
   id: string;
@@ -6,7 +7,7 @@ export const generateAccessToken = (payload: {
   tokenVersion?: number;
 }) => {
   return jwt.sign(payload, process.env.JWT_ACCESS_SECRET!, {
-    expiresIn: '15m'
+    expiresIn: Number(accessTokenTtl)
   });
 };
 
@@ -15,6 +16,6 @@ export const generateRefreshToken = (payload: {
   tokenVersion?: number;
 }) => {
   return jwt.sign(payload, process.env.JWT_REFRESH_SECRET!, {
-    expiresIn: '7d'
+    expiresIn: Number(refreshTokenTtl)
   });
 };
