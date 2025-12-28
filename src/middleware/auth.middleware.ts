@@ -8,18 +8,27 @@ export const authorizeUser = (
   res: Response,
   next: NextFunction
 ) => {
-    const authUserId = req.user?.id; 
-    const requestedUserId = req.params.id;
+  const authUserId = req.user?.id;
+  const requestedUserId = req.params.id;
 
-
-    /* -------------------- VALIDATIONS -------------------- */
     if (!mongoose.Types.ObjectId.isValid(requestedUserId)) {
         return sendResponse(res, 400, false, 'Invalid user ID');
     }
 
-    if (authUserId !== requestedUserId || req.user.isBanned || req.user?.role !== 'isAdmin') {
+    if (!req.user) {
+        return sendResponse(res, 401, false, 'Authentication required');
+    }
+
+    const isOwner = authUserId === requestedUserId;
+    const isAdmin = req.user?.role === 'isAdmin';
+
+    if (req.user?.isBanned) {
+        return sendResponse(res, 403, false, 'User is banned');
+    }
+
+    if (!isOwner && !isAdmin) {
         return sendResponse(res, 403, false, 'Access denied');
     }
 
-    next();
+  next();
 };

@@ -7,11 +7,11 @@ const userRouter = Router();
 
 userRouter.get('/', getAllUsers);
 
-userRouter.get('/:id', authorizeUser, verifyUserToken, getUserDetails);
+userRouter.get('/:id', verifyUserToken, authorizeUser, getUserDetails);
 
-userRouter.patch('/:id', authorizeUser, verifyUserToken,  updateUserDetails);
+userRouter.patch('/:id', verifyUserToken,  authorizeUser, updateUserDetails);
 
-userRouter.patch('/:id/password', authorizeUser, verifyUserToken,  updatePassword)
+userRouter.patch('/:id/password', verifyUserToken, authorizeUser, updatePassword)
 
 
 export default userRouter;

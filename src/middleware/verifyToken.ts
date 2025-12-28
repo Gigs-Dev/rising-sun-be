@@ -1,43 +1,9 @@
 import { Request, Response, NextFunction } from "express";
-import jwt, { Jwt, JwtPayload } from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { privateKey, publicKey } from "../config/env.config";
 import { sendResponse } from "../utils/sendResponse";
 
 
-
-export function signJwt(object:Object, options?: jwt.SignOptions | undefined){
-    return jwt.sign(object, privateKey!, {
-        ...(options && options),
-        algorithm: 'RS256'
-    })
-}
-
-
-export function verifyJwt(token: string){
-    try {
-        const decoded = jwt.verify(token, publicKey!);
-
-        return {
-            valid: true,
-            expired: false,
-            decoded
-        }
-    } catch (error: any) {
-        return {
-            valid: error,
-            expired: error.message = 'Jwt expired',
-            decoded: null
-        }
-    }
-}
-
-
-
-interface AuthPayload extends JwtPayload {
-  id: string;
-  role?: string;
-  tokenVersion?: number;
-}
 
 export const verifyUserToken = (
   req: Request,
@@ -55,13 +21,13 @@ export const verifyUserToken = (
 
     const decoded = jwt.verify(
       token,
-      publicKey!
-    ) as AuthPayload;
+      privateKey!
+    ) as JwtPayload;
 
     req.user = {
-      id: decoded.id,
-      role: decoded.role,
-      tokenVersion: decoded.tokenVersion
+        id: decoded.id,
+        role: decoded.role,
+        isBanned: decoded.isBanned
     };
 
     next();
