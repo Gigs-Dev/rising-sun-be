@@ -20,7 +20,6 @@ export const getAllUsers = async (req:Request, res: Response) => {
 
 
 export const getUserDetails = async (req:Request, res: Response) => {
-    
 
     const user = await User.findById(req.params.id).select(
     'fullName email phoneNumber referringUserCode createdAt dob address'

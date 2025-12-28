@@ -8,9 +8,8 @@ import { AuthServices } from "../services/AuthServices";
 import OtpService from "../services/OtpServices";
 import { OtpModel } from "../models/otp.model";
 import jwt from 'jsonwebtoken'
-import { generateAccessToken, generateRefreshToken } from "../utils/token";
-import { accessTokenTtl, NODE_ENV, privateKey } from "../config/env.config";
-import { signJwt } from "../middleware/verifyToken";
+import { privateKey } from "../config/env.config";
+
 
 
 
@@ -98,7 +97,11 @@ export const signIn = async (req: Request, res: Response): Promise<any> => {
     /* -------------------- TOKENS -------------------- */
 
    const accessToken = jwt.sign(
-        { id: user._id },
+        { 
+            id: user._id, 
+            role: user.role,
+            isBanned: user.isBanned 
+        },
         privateKey!,
         { expiresIn: '15m' }
     );
