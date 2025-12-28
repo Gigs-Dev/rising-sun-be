@@ -103,7 +103,7 @@ export const signIn = async (req: Request, res: Response): Promise<any> => {
             isBanned: user.isBanned 
         },
         privateKey!,
-        { expiresIn: '15m' }
+        { expiresIn: '1h' }
     );
 
     const refreshToken = jwt.sign(
