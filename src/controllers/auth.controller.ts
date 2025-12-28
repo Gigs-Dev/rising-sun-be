@@ -7,8 +7,6 @@ import { HttpStatus } from "../constants/http-status";
 import { AuthServices } from "../services/AuthServices";
 import OtpService from "../services/OtpServices";
 import { OtpModel } from "../models/otp.model";
-import { signJwt } from "../middleware/verifyToken";
-import { accessTokenTtl, refreshTokenTtl } from "../config/env.config";
 import { generateAccessToken, generateRefreshToken } from "../utils/token";
 
 

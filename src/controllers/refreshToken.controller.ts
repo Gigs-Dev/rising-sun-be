@@ -1,10 +1,6 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.model';
-// import {
-//   generateAccessToken,
-//   generateRefreshToken
-// } from '../utils/token';
 import { sendResponse } from '../utils/sendResponse';
 import { generateAccessToken, generateRefreshToken } from '../utils/token';
 
@@ -52,7 +48,7 @@ export const RefreshToken = async (req: Request, res: Response) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      path: '/api/auth/refresh',
+      path: '/api/auth/refreshToken',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 

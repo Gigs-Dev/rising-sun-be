@@ -7,9 +7,9 @@
   "main": "dist/app.js",
   "scripts": {
     "start:dev": "tsnd --respawn --transpile-only --watch --trace-warnings --env-file=.env src/app.ts",
-    "build:prod": "rimraf ./dist && node --max-old-space-size=4096",
-    "start": "yarn run build:prod && yarn start-prod",
+    "build:prod": "rimraf ./dist && tsc -p .",
     "build": "rimraf ./dist && tsc -p .",
+    "start": "yarn run build:prod && yarn start-prod",
     "start-prod": "node dist/src/app.js"
   },
   "dependencies": {
