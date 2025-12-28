@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import User from "../models/user.model";
-import jwt from 'jsonwebtoken'
 import { sendResponse } from "../utils/sendResponse";
 import { doHash, hashValidator } from "../utils/func";
 import { AppError } from "../utils/app-error";
@@ -8,6 +7,8 @@ import { HttpStatus } from "../constants/http-status";
 import { AuthServices } from "../services/AuthServices";
 import OtpService from "../services/OtpServices";
 import { OtpModel } from "../models/otp.model";
+import { signJwt } from "../middleware/verifyToken";
+import { accessTokenTtl, refreshTokenTtl } from "../config/env.config";
 
 
 
@@ -47,7 +48,6 @@ export const verifySignUpOTP = async (req: Request, res: Response): Promise<any>
         throw new AppError("You cannot refer yourself", HttpStatus.BAD_REQUEST);
     }
 
-
     const isVerified = authServices.verifyEmailOtp(email, otp);
     if (!isVerified) {
         throw new AppError("OTP not valid or expired", HttpStatus.FORBIDDEN);
@@ -68,11 +68,11 @@ export const verifySignUpOTP = async (req: Request, res: Response): Promise<any>
         referringUserCode,
     });
 
-    return res.status(HttpStatus.CREATED).json({
-        success: true,
-        message: "Account created successfully",
-        data: user,
-    });
+    const accessToken = signJwt({ user: user._id }, { expiresIn: Number(accessTokenTtl) });
+
+    const refreshToken = signJwt({ user: user._id }, { expiresIn: Number(refreshTokenTtl) });
+
+    return sendResponse(res, HttpStatus.OK, true, 'Sign up successfully!', { accessToken, refreshToken });
 
 }
 
@@ -97,9 +97,12 @@ export const signIn = async (req: Request, res: Response): Promise<any> => {
         return sendResponse(res, HttpStatus.UNAUTHORIZED, false, 'Please provide a valid credential', null);
     }
 
-    const token = jwt.sign({ user: user._id, email: user.email }, 'jwt-secret', { expiresIn: '15m' })
+    // const token = jwt.sign({ user: user._id, email: user.email }, 'jwt-secret', { expiresIn: '15m' })
+    const accessToken = signJwt({ user: user._id }, { expiresIn: Number(accessTokenTtl) });
 
-    sendResponse(res, HttpStatus.OK, true, 'Login successfully!', token)
+    const refreshToken = signJwt({ user: user._id }, { expiresIn: Number(refreshTokenTtl) });
+
+    return sendResponse(res, HttpStatus.OK, true, 'Login successfully!', { accessToken, refreshToken })
 }
 
 

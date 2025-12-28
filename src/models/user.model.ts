@@ -18,7 +18,6 @@ const userSchema = new Schema<UserType>({
     phoneNumber: {
         type: String,
         required: true,
-        select: false,
     },
     password: {
         type: String,
@@ -38,6 +37,10 @@ const userSchema = new Schema<UserType>({
     address: {
         type: String
     },
+    isBanned: {
+        type: Boolean,
+        default: false
+    }
 }, 
     { timestamps: true }
 )

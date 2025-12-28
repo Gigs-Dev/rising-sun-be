@@ -8,7 +8,8 @@ export interface UserType  extends Document {
     dob: Date;
     address: string;
     referringUserCode: string;
-    phoneNumber: string
+    phoneNumber: string;
+    isBanned: boolean;
 }
 
 
