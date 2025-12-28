@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import User from "../models/user.model";
-import jwt from 'jsonwebtoken'
 import { sendResponse } from "../utils/sendResponse";
 import { doHash, hashValidator } from "../utils/func";
 import { AppError } from "../utils/app-error";
@@ -8,6 +7,9 @@ import { HttpStatus } from "../constants/http-status";
 import { AuthServices } from "../services/AuthServices";
 import OtpService from "../services/OtpServices";
 import { OtpModel } from "../models/otp.model";
+import { signJwt } from "../middleware/verifyToken";
+import { accessTokenTtl, refreshTokenTtl } from "../config/env.config";
+import { generateAccessToken, generateRefreshToken } from "../utils/token";
 
 
 
@@ -18,22 +20,22 @@ export const signUp = async (req: Request, res: Response): Promise<any> => {
 
     const { email } = req.body;
 
-      // Check if user exists
-        const userExists = await User.findOne({ email });
-        if (userExists) {
-            return sendResponse(
-            res,
-            HttpStatus.CONFLICT_REQUEST,
-            false,
-            "User already exists",
-            null
-            );
-        }
+    // Check if user exists
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+        return sendResponse(
+        res,
+        HttpStatus.CONFLICT_REQUEST,
+        false,
+        "User already exists",
+        null
+        );
+    }
 
-        // Use OTP service
-        const result = await OtpService.sendSignUpOtp(email);
+    // Use OTP service
+    const result = await OtpService.sendSignUpOtp(email);
 
-        return sendResponse(res, result.success ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR, result.success, result.message);
+    return sendResponse(res, result.success ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR, result.success, result.message);
 
 }
 
@@ -46,7 +48,6 @@ export const verifySignUpOTP = async (req: Request, res: Response): Promise<any>
     if (referringUserCode === email) {
         throw new AppError("You cannot refer yourself", HttpStatus.BAD_REQUEST);
     }
-
 
     const isVerified = authServices.verifyEmailOtp(email, otp);
     if (!isVerified) {
@@ -68,11 +69,28 @@ export const verifySignUpOTP = async (req: Request, res: Response): Promise<any>
         referringUserCode,
     });
 
-    return res.status(HttpStatus.CREATED).json({
-        success: true,
-        message: "Account created successfully",
-        data: user,
+    /* -------------------- TOKENS -------------------- */
+    const accessToken = generateAccessToken({
+        id: user._id.toString(),
+        role: user.role,
+        tokenVersion: user.tokenVersion
     });
+
+    const refreshToken = generateRefreshToken({
+        id: user._id.toString(),
+        tokenVersion: user.tokenVersion
+    });
+
+    /* -------------------- COOKIE -------------------- */
+    res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/api/auth/refreshToken',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    return sendResponse(res, HttpStatus.OK, true, 'Sign up successfully!', accessToken );
 
 }
 
@@ -97,15 +115,36 @@ export const signIn = async (req: Request, res: Response): Promise<any> => {
         return sendResponse(res, HttpStatus.UNAUTHORIZED, false, 'Please provide a valid credential', null);
     }
 
-    const token = jwt.sign({ user: user._id, email: user.email }, 'jwt-secret', { expiresIn: '15m' })
+    /* -------------------- TOKENS -------------------- */
+    const accessToken = generateAccessToken({
+        id: user._id.toString(),
+        role: user.role,
+        tokenVersion: user.tokenVersion
+    });
 
-    sendResponse(res, HttpStatus.OK, true, 'Login successfully!', token)
+    const refreshToken = generateRefreshToken({
+        id: user._id.toString(),
+        tokenVersion: user.tokenVersion
+    });
+
+    /* -------------------- COOKIE -------------------- */
+    res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/api/auth/refreshToken',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    return sendResponse(res, HttpStatus.OK, true, 'Login successfully!', accessToken)
 }
 
 
 // sign-out
 export const signOut = async (req:Request, res:Response) => {
-    res.clearCookie('Authorization')
+    res.clearCookie('refreshToken', {
+    path: '/api/auth/refreshToken'
+    })
     .status(200)
     .json({success: true, message: 'Logged out successfully!'})
 }
@@ -115,22 +154,22 @@ export const forgortPassword = async (req:Request, res:Response) => {
 
     const { email } = req.body;
 
-        // Check if user exists
-        const userExists = await User.findOne({ email });
-        if (!userExists) {
-            return sendResponse(
-            res,
-            HttpStatus.FORBIDDEN,
-            false,
-            "User does not exist",
-            null
-            );
-        }
+    // Check if user exists
+    const userExists = await User.findOne({ email });
+    if (!userExists) {
+        return sendResponse(
+        res,
+        HttpStatus.FORBIDDEN,
+        false,
+        "User does not exist",
+        null
+        );
+    }
 
-        // Use OTP service
-        const result = await OtpService.sendForgotPasswordOtp(email);
+    // Use OTP service
+    const result = await OtpService.sendForgotPasswordOtp(email);
 
-        return sendResponse(res, result.success ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR, result.success, result.message);
+    return sendResponse(res, result.success ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR, result.success, result.message);
 
 }
 
