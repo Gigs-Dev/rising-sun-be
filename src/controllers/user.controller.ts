@@ -4,6 +4,7 @@ import { sendResponse } from "../utils/sendResponse";
 import mongoose from "mongoose";
 import { doHash, hashValidator } from "../utils/func";
 import { UserType } from "../types/type";
+import Referrals from "../models/referral.model";
 
 
 export const getAllUsers = async (req:Request, res: Response) => {
@@ -114,13 +115,18 @@ export const updatePassword = async (req:Request, res:Response) => {
     /* -------------------- UPDATE -------------------- */
     user.password = await doHash(newPassword, 12);
 
-    // Optional but recommended
     // user.tokenVersion += 1;
 
     await user.save();
 
     sendResponse(res, 200, true, 'Password updated successfully');
 
+}
+
+
+
+export const getUserReferals = async (req:Request, res: Response) => {
+    console.log('coming soon!!!')
 }
 
 

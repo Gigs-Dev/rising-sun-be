@@ -10,6 +10,8 @@ export interface UserType  extends Document {
     referringUserCode: string;
     phoneNumber: string;
     isBanned: boolean;
+    role?: string;
+    tokenVersion?: number;
 }
 
 

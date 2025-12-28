@@ -3,8 +3,8 @@ import { sendResponse } from "../utils/sendResponse";
 import mongoose from "mongoose";
 
 
-export const requireSameUser = (
-  req: Request | any,
+export const authorizeUser = (
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
