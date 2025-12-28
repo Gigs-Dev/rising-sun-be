@@ -7,7 +7,10 @@ import { HttpStatus } from "../constants/http-status";
 import { AuthServices } from "../services/AuthServices";
 import OtpService from "../services/OtpServices";
 import { OtpModel } from "../models/otp.model";
+import jwt from 'jsonwebtoken'
 import { generateAccessToken, generateRefreshToken } from "../utils/token";
+import { accessTokenTtl, NODE_ENV, privateKey } from "../config/env.config";
+import { signJwt } from "../middleware/verifyToken";
 
 
 
@@ -59,7 +62,7 @@ export const verifySignUpOTP = async (req: Request, res: Response): Promise<any>
         );
     }
 
-    const user = await AuthServices.verifySignupAndCreateUser({
+     await AuthServices.verifySignupAndCreateUser({
         fullName,
         email,
         phoneNumber,
@@ -67,28 +70,7 @@ export const verifySignUpOTP = async (req: Request, res: Response): Promise<any>
         referringUserCode,
     });
 
-    /* -------------------- TOKENS -------------------- */
-    const accessToken = generateAccessToken({
-        id: user._id.toString(),
-        role: user.role,
-        tokenVersion: user.tokenVersion
-    });
-
-    const refreshToken = generateRefreshToken({
-        id: user._id.toString(),
-        tokenVersion: user.tokenVersion
-    });
-
-    /* -------------------- COOKIE -------------------- */
-    res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path: '/api/auth/refreshToken',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
-
-    return sendResponse(res, HttpStatus.OK, true, 'Sign up successfully!', accessToken );
+    return sendResponse(res, HttpStatus.CREATED, true, 'Sign up successfully!', null );
 
 }
 
@@ -114,27 +96,32 @@ export const signIn = async (req: Request, res: Response): Promise<any> => {
     }
 
     /* -------------------- TOKENS -------------------- */
-    const accessToken = generateAccessToken({
-        id: user._id.toString(),
-        role: user.role,
-        tokenVersion: user.tokenVersion
-    });
 
-    const refreshToken = generateRefreshToken({
-        id: user._id.toString(),
-        tokenVersion: user.tokenVersion
-    });
+   const accessToken = jwt.sign(
+        { id: user._id },
+        privateKey!,
+        { expiresIn: '15m' }
+    );
 
-    /* -------------------- COOKIE -------------------- */
+    const refreshToken = jwt.sign(
+        { id: user._id },
+        privateKey!,
+        { expiresIn: '7d' }
+    );
+
     res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
+        secure: process.env.NODE_ENV === 'production',
         path: '/api/auth/refreshToken',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
-    return sendResponse(res, HttpStatus.OK, true, 'Login successfully!', accessToken)
+    return sendResponse(res, 
+        HttpStatus.OK, 
+        true, 
+        'Login successfully!', { 
+        accessToken, 
+        user })
 }
 
 

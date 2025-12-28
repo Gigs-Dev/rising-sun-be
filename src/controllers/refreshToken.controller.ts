@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/user.model';
 import { sendResponse } from '../utils/sendResponse';
 import { generateAccessToken, generateRefreshToken } from '../utils/token';
+import { NODE_ENV, publicKey } from '../config/env.config';
 
 interface RefreshPayload {
   id: string;
@@ -19,7 +20,7 @@ export const RefreshToken = async (req: Request, res: Response) => {
 
     const decoded = jwt.verify(
       token,
-      process.env.JWT_REFRESH_SECRET!
+      publicKey!
     ) as RefreshPayload;
 
     const user = await User.findById(decoded.id);
@@ -34,19 +35,19 @@ export const RefreshToken = async (req: Request, res: Response) => {
     }
 
     const newAccessToken = generateAccessToken({
-      id: user._id.toString(),
+      user: user._id.toString(),
       role: user.role,
       tokenVersion: user.tokenVersion
     });
 
     const newRefreshToken = generateRefreshToken({
-      id: user._id.toString(),
+      user: user._id.toString(),
       tokenVersion: user.tokenVersion
     });
 
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: NODE_ENV === 'production',
       sameSite: 'strict',
       path: '/api/auth/refreshToken',
       maxAge: 7 * 24 * 60 * 60 * 1000
