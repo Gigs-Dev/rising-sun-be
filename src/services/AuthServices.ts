@@ -7,7 +7,7 @@ import { AppError } from "../utils/app-error";
 import { HttpStatus } from "../constants/http-status";
 import ReferralService from "./ReferralService";
 
-const MAX_OTP_ATTEMPTS = 5;
+
 
 export class AuthServices {
   constructor() {}
@@ -17,101 +17,123 @@ export class AuthServices {
    *  Does NOT create user
    */
   async verifyEmailOtp(email: string, otp: string): Promise<void> {
+    email = email.toLowerCase();
 
-    const otpRecord = await OtpModel.findOne({ email });
+    const otpRecord = await OtpModel.findOne({
+      email,
+      verified: false,
+    });
 
     if (!otpRecord) {
-      throw new Error("OTP not found or expired");
+      throw new AppError("OTP not valid or expired", HttpStatus.BAD_REQUEST);
     }
 
-    //  Already used
-    if (otpRecord.verified) {
-      throw new Error("OTP already used");
-    }
-
-    //  Too many attempts
-    if (otpRecord.attempts >= MAX_OTP_ATTEMPTS) {
-      await otpRecord.deleteOne();
-      throw new Error("Too many failed attempts. Request a new OTP");
-    }
-
-    // Expired (extra safety beyond TTL)
-    if (otpRecord.expiresAt.getTime() < Date.now()) {
-      await otpRecord.deleteOne();
-      throw new Error("OTP has expired");
+    if (otpRecord.otpExpiresAt.getTime() < Date.now()) {
+      throw new AppError("OTP has expired", HttpStatus.BAD_REQUEST);
     }
 
     const hashedOtp = hmacHash(otp);
 
-    // Wrong OTP
     if (hashedOtp !== otpRecord.otp) {
-      otpRecord.attempts += 1;
-      await otpRecord.save();
-      throw new Error("Invalid OTP");
+      await OtpModel.updateOne(
+        { _id: otpRecord._id },
+        { $inc: { attempts: 1 } }
+      );
+
+      throw new AppError("Invalid OTP", HttpStatus.BAD_REQUEST);
     }
 
-    /**
-     * OTP is valid
-     * Mark as verified (temporary state)
-     */
-    otpRecord.verified = true;
-    await otpRecord.save();
+    await OtpModel.updateOne(
+      { _id: otpRecord._id },
+      {
+        $set: { verified: true, attempts: 0 },
+      }
+    );
   }
 
 
-
   static async verifySignupAndCreateUser(data: VerifySignupDTO) {
-    const session = await mongoose.startSession();
+  const session = await mongoose.startSession();
 
-    try {
-      session.startTransaction();
+  try {
+    session.startTransaction();
 
-      const { fullName, email, phoneNumber, password, referringUserCode } =
-        data;
+    const {
+      fullName,
+      email,
+      phoneNumber,
+      password,
+      referringUserCode,
+      verificationId, // 👈 required
+    } = data;
 
-      const existingUser = await User.findOne({ email }).session(session);
-      if (existingUser) {
-        throw new AppError(
-          "User already exists",
-          HttpStatus.CONFLICT_REQUEST
-        );
-      }
+    /* -------------------- 0️⃣ VERIFY OTP SESSION -------------------- */
+    const otpRecord = await OtpModel.findOne({
+      email: email.toLowerCase(),
+      verificationId,
+      verified: true,
+    }).session(session);
 
-      /** 1️⃣ Create user */
-      const user = new User({
-        fullName,
-        email,
-        phoneNumber, // string
-        password,
-      });
+    if (!otpRecord) {
+      throw new AppError(
+        "Invalid or expired verification session",
+        HttpStatus.FORBIDDEN
+      );
+    }
 
-      await user.save({ session });
+    if (
+      !otpRecord.verificationExpiresAt ||
+      otpRecord.verificationExpiresAt.getTime() < Date.now()
+    ) {
+      throw new AppError(
+        "Verification session expired",
+        HttpStatus.FORBIDDEN
+      );
+    }
 
-      /** 2️⃣ Create referral profile */
-      await ReferralService.createReferralProfile(
-        user._id,
+    /* -------------------- 1️⃣ CHECK EXISTING USER -------------------- */
+    const existingUser = await User.findOne({ email }).session(session);
+    if (existingUser) {
+      throw new AppError(
+        "User already exists",
+        HttpStatus.CONFLICT_REQUEST
+      );
+    }
+
+    /* -------------------- 2️⃣ CREATE USER -------------------- */
+    const user = new User({
+      fullName,
+      email,
+      phoneNumber,
+      password,
+    });
+
+    await Promise.all([
+      user.save({ session }),
+      ReferralService.createReferralProfile(user._id, email, session),
+    ]);
+
+    /* -------------------- 3️⃣ HANDLE REFERRAL -------------------- */
+    if (referringUserCode && referringUserCode !== email) {
+      await ReferralService.rewardReferrer(
+        referringUserCode,
         email,
         session
       );
-
-      /** 3️⃣ Handle referral reward */
-      if (referringUserCode && referringUserCode !== email) {
-        await ReferralService.rewardReferrer(
-          referringUserCode,
-          email,
-          session
-        );
-      }
-
-      await session.commitTransaction();
-      session.endSession();
-
-      return user;
-    } catch (error) {
-      await session.abortTransaction();
-      session.endSession();
-      throw error;
     }
+
+    /* -------------------- 4️⃣ INVALIDATE OTP (SINGLE USE) -------------------- */
+    await OtpModel.deleteOne({ _id: otpRecord._id }).session(session);
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return user;
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
   }
 
 }

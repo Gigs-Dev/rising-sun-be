@@ -1,14 +1,15 @@
 import { Request, Response } from "express";
 import User from "../models/user.model";
 import { sendResponse } from "../utils/sendResponse";
-import { doHash, hashValidator } from "../utils/func";
+import { doHash, generateVerificationId, hashValidator } from "../utils/func";
 import { AppError } from "../utils/app-error";
 import { HttpStatus } from "../constants/http-status";
 import { AuthServices } from "../services/AuthServices";
 import OtpService from "../services/OtpServices";
 import { OtpModel } from "../models/otp.model";
-import jwt from 'jsonwebtoken'
 import { privateKey } from "../config/env.config";
+import Referrals from "../models/referral.model";
+import { signAccessToken, signRefreshToken } from "../utils/jwt-util";
 
 
 
@@ -41,37 +42,54 @@ export const signUp = async (req: Request, res: Response): Promise<any> => {
 
 
 // Verify the sign-up OTP
-export const verifySignUpOTP = async (req: Request, res: Response): Promise<any> => {
+export const verifySignUpOTP = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  const { email, otp } = req.body;
 
-    const { fullName, email, phoneNumber, password, otp, referringUserCode } = req.body;
+  await authServices.verifyEmailOtp(email, otp);
+
+  const verificationId = generateVerificationId();
+
+  await OtpModel.updateOne(
+    { email: email.toLowerCase(), verified: true },
+    {
+      $set: {
+        verificationId,
+        verificationExpiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
+      },
+    }
+  );
+
+  return sendResponse(res, HttpStatus.OK, true, "OTP verified successfully!", {
+    verificationId,
+  });
+};
+
+
+
+
+export const createUser = async (req: Request, res: Response): Promise<any> => {
+
+    const { fullName, email, phoneNumber, password, verificationId, referringUserCode } = req.body;
 
     if (referringUserCode === email) {
         throw new AppError("You cannot refer yourself", HttpStatus.BAD_REQUEST);
     }
 
-    const isVerified = authServices.verifyEmailOtp(email, otp);
-    if (!isVerified) {
-        throw new AppError("OTP not valid or expired", HttpStatus.FORBIDDEN);
+    if (!email || !fullName || !phoneNumber || !password || !verificationId) {
+        throw new AppError( "Missing required fields", HttpStatus.UNPROCESSABLE_ENTITY );
     }
 
-    if (!email || !fullName || !phoneNumber || !password) {
-        throw new AppError(
-        "Missing required fields",
-        HttpStatus.UNPROCESSABLE_ENTITY
-        );
-    }
+    const user = await AuthServices.verifySignupAndCreateUser({ fullName, email, phoneNumber, password, referringUserCode, verificationId });
 
-     await AuthServices.verifySignupAndCreateUser({
-        fullName,
-        email,
-        phoneNumber,
-        password,
-        referringUserCode,
-    });
+    await user.save();
 
     return sendResponse(res, HttpStatus.CREATED, true, 'Sign up successfully!', null );
 
 }
+
 
 // sign-in
 export const signIn = async (req: Request, res: Response): Promise<any> => {
@@ -94,23 +112,20 @@ export const signIn = async (req: Request, res: Response): Promise<any> => {
         return sendResponse(res, HttpStatus.UNAUTHORIZED, false, 'Please provide a valid credential', null);
     }
 
+    const referral = await Referrals.findOne({ userId: user._id }).lean();
+
     /* -------------------- TOKENS -------------------- */
 
-   const accessToken = jwt.sign(
-        { 
-            id: user._id, 
-            role: user.role,
-            isBanned: user.isBanned 
-        },
-        privateKey!,
-        { expiresIn: '1h' }
-    );
+   const accessToken = signAccessToken({
+    id: user._id.toString(),
+    role: user.role,
+    isBanned: user.isBanned,}, privateKey );
 
-    const refreshToken = jwt.sign(
-        { id: user._id },
-        privateKey!,
-        { expiresIn: '7d' }
-    );
+    const refreshToken = signRefreshToken({
+    id: user._id.toString(),
+    role: user.role,
+    isBanned: user.isBanned,}, privateKey );
+    
 
     res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
@@ -119,12 +134,7 @@ export const signIn = async (req: Request, res: Response): Promise<any> => {
         path: '/api/auth/refreshToken',
     });
 
-    return sendResponse(res, 
-        HttpStatus.OK, 
-        true, 
-        'Login successfully!', { 
-        accessToken, 
-        user })
+    return sendResponse(res, HttpStatus.OK, true, 'Login successfully!', { accessToken, referral,  user })
 }
 
 

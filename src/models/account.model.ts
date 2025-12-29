@@ -1,10 +1,15 @@
-import mongoose, { model, Schema } from "mongoose";
+import { model, Schema } from "mongoose";
 
 const accountSchema = new Schema({
     userId: {
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true
+    },
+    type: { 
+        type: String, 
+        enum: ['credit', 'debit'], 
+        required: true 
     },
     acctNum: {
         type: String,

@@ -3,9 +3,11 @@ import { Document, Schema, model } from "mongoose";
 export interface OtpDocument extends Document {
   email: string;
   otp: string;
-  expiresAt: Date;
-  attempts: number;
+  otpExpiresAt: Date;
+  attempts: number
   verified: boolean;
+  verificationId: string;
+  verificationExpiresAt: Date
 }
 
 const OtpSchema = new Schema<OtpDocument>({
@@ -13,31 +15,33 @@ const OtpSchema = new Schema<OtpDocument>({
     type: String,
     required: true,
     lowercase: true,
-    index: true,
   },
   otp: {
     type: String,
     required: true,
   },
-  expiresAt: {
-    type: Date,
-    required: true,
-  },
-
-  // Security fields
   attempts: {
     type: Number,
     default: 0,
+  },
+  otpExpiresAt: {
+    type: Date,
+    required: true,
   },
   verified: {
     type: Boolean,
     default: false,
   },
+  verificationId: {
+    type: String,
+    index: true,
+  },
+  verificationExpiresAt: {
+    type: Date,
+  },
+
 });
 
-/**
- *  Auto-delete expired OTPs (hard guarantee)
- */
-OtpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
 
 export const OtpModel = model<OtpDocument>("Otp", OtpSchema);

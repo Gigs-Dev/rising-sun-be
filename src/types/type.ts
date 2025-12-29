@@ -1,7 +1,8 @@
-import { Document } from "mongoose";
+import { Document, StringExpressionOperatorReturningArray } from "mongoose";
 
 export interface UserType  extends Document {
     fullName: string;
+    verificationId: string;
     email: string;
     password: string;
     profilePics: string;
@@ -26,6 +27,7 @@ export interface VerifySignupDTO {
   email: string;
   phoneNumber: string;
   password: string;
+  verificationId;
   referringUserCode?: string;
 }
 
