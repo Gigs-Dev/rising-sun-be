@@ -11,8 +11,7 @@ const referralSchema = new Schema(
     referralCode: {
       type: String,
       unique: true,
-      sparse: true,
-
+      required: true
     },
     referrals: {
       type: [String], 

@@ -22,6 +22,8 @@ export const globalErrorHandler = (
     message = err.message;
   }
 
+  console.log(err)
+
   // Mongoose errors
   switch (err.name) {
     case "CastError":
@@ -61,7 +63,8 @@ export const globalErrorHandler = (
     // Production: hide details
     res.status(statusCode).json({
       success: false,
-      message
+      message,
+      error: err
     });
   }
 };
