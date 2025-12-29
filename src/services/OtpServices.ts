@@ -17,7 +17,7 @@ class OtpService {
 
     // Generate OTP and expiry
     const otp = OtpService.generateOTP();
-    const otpExpiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     // Select email body and subject based on type
     let html: string;
@@ -52,7 +52,7 @@ class OtpService {
     await OtpModel.create({
       email,
       otp: hmacHash(otp),
-      expiresAt: otpExpiresAt,
+      otpExpiresAt,
     });
 
     return { success: true, message: "OTP sent! Please check your email" };

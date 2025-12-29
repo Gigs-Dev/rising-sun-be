@@ -31,9 +31,9 @@ export const verifyHmac = (data: string, receivedHash: string): boolean => {
 };
 
 
-export const generateReferalCode = () => {
-
-}
+export const generateVerificationId = (): string => {
+  return crypto.randomBytes(32).toString("hex"); // 64 chars
+};
 
 export function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();

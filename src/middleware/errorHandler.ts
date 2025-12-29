@@ -42,6 +42,7 @@ export const globalErrorHandler = (
       if (err.code === 11000) {
         statusCode = HttpStatus.BAD_REQUEST;
         message = "Duplicate field value";
+        console.log(err)
       }
       break;
   }
