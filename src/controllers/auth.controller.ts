@@ -10,6 +10,7 @@ import { OtpModel } from "../models/otp.model";
 import { privateKey } from "../config/env.config";
 import Referrals from "../models/referral.model";
 import { signAccessToken, signRefreshToken } from "../utils/jwt-util";
+import Account from "../models/account.model";
 
 
 
@@ -84,7 +85,14 @@ export const createUser = async (req: Request, res: Response): Promise<any> => {
 
     const user = await AuthServices.verifySignupAndCreateUser({ fullName, email, phoneNumber, password, referringUserCode, verificationId });
 
-    await user.save();
+    const userAcct = new Account({
+        userId: user._id,
+        acctNum: '',
+        withdrawalPin: '',
+        acctBal: 0
+    })
+
+    await Promise.all([user.save(), userAcct.save()]);
 
     return sendResponse(res, HttpStatus.CREATED, true, 'Sign up successfully!', null );
 
@@ -93,49 +101,60 @@ export const createUser = async (req: Request, res: Response): Promise<any> => {
 
 // sign-in
 export const signIn = async (req: Request, res: Response): Promise<any> => {
+  const { email, password } = req.body;
 
-    const { email, password } = req.body;
+  if (!email || !password) {
+    throw new AppError('Missing required fields', HttpStatus.UNPROCESSABLE_ENTITY);
+  }
 
-    if(!email || !password){
-        throw new AppError('Missing required fields', HttpStatus.UNPROCESSABLE_ENTITY)
-    }
+  const emailNormalized = email.toLowerCase().trim();
 
-    const user = await User.findOne({ email }).select('+password');
+  const user = await User.findOne({ email: emailNormalized }).select('+password');
+  if (!user) {
+    return sendResponse(res, HttpStatus.UNAUTHORIZED, false, 'Invalid credentials', null);
+  }
 
-    if(!user){
-        return sendResponse(res, 401, false, 'Invalid credentials', null);
-    }
+  if (user.isBanned) {
+    return sendResponse(res, HttpStatus.FORBIDDEN, false, 'Account is suspended', null);
+  }
 
-    const isPasswordValid = await hashValidator(password, user.password);
+  const isPasswordValid = await hashValidator(password, user.password);
+  if (!isPasswordValid) {
+    return sendResponse(res, HttpStatus.UNAUTHORIZED, false, 'Invalid credentials', null);
+  }
 
-    if(!isPasswordValid){
-        return sendResponse(res, HttpStatus.UNAUTHORIZED, false, 'Please provide a valid credential', null);
-    }
+  const [referral, account] = await Promise.all([
+    Referrals.findOne({ userId: user._id }).lean(),
+    Account.findOne({ userId: user._id }).lean(),
+  ]);
 
-    const referral = await Referrals.findOne({ userId: user._id }).lean();
-
-    /* -------------------- TOKENS -------------------- */
-
-   const accessToken = signAccessToken({
+  const tokenPayload = {
     id: user._id.toString(),
     role: user.role,
-    isBanned: user.isBanned,}, privateKey );
+    isBanned: user.isBanned,
+  };
 
-    const refreshToken = signRefreshToken({
-    id: user._id.toString(),
-    role: user.role,
-    isBanned: user.isBanned,}, privateKey );
-    
+  const accessToken = signAccessToken(tokenPayload, privateKey);
+  const refreshToken = signRefreshToken(tokenPayload, privateKey);
 
-    res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        sameSite: 'strict',
-        secure: process.env.NODE_ENV === 'production',
-        path: '/api/auth/refreshToken',
-    });
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/api/auth/refreshToken',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
 
-    return sendResponse(res, HttpStatus.OK, true, 'Login successfully!', { accessToken, referral,  user })
-}
+  const userSafe = user.toObject();
+  delete userSafe.password;
+
+  return sendResponse(res, HttpStatus.OK, true, 'Login successfully!', {
+    accessToken,
+    user: userSafe,
+    userDetails: { referral, account },
+  });
+};
+
 
 
 // sign-out
