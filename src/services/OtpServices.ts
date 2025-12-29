@@ -38,7 +38,7 @@ class OtpService {
 
     // Send OTP email
     const info = await transport.sendMail({
-      from: USER_EMAIL,
+      from: 'officialsrisingsun@gmail.com',
       to: email,
       subject,
       html,

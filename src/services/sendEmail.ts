@@ -5,8 +5,8 @@ import { USER_EMAIL, USER_PASSWORD } from '../config/env.config';
 const transport = createTransport({
     service: 'gmail',
     auth: {
-        user: USER_EMAIL,
-        pass: USER_PASSWORD
+        user: 'officialsrisingsun@gmail.com',
+        pass: 'ibfgosdxrpayetwx'
     }
 })
 
