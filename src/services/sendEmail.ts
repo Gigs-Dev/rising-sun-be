@@ -1,8 +1,11 @@
 import { createTransport } from 'nodemailer';
-import { USER_EMAIL, USER_PASSWORD } from '../config/env.config';
+import { Resend } from "resend";
+import { USER_EMAIL, USER_PASSWORD, RESEND_API_KEY } from '../config/env.config';
+import { AppError } from '../utils/app-error';
+import { HttpStatus } from '../constants/http-status';
 
 
-const transport = createTransport({
+export const transport = createTransport({
     host: "smtp.gmail.com",
     port: 467,
     secure: true,
@@ -16,4 +19,22 @@ const transport = createTransport({
     socketTimeout: 10_000,
 })
 
-export default transport;
+
+const resend = new Resend(RESEND_API_KEY);
+
+export async function ResendEmail(email: string, subject: string, html: any) {
+    const { data, error } = await resend.emails.send({
+    from: "official.risebet@gmail.com",
+    to: email,
+    subject: subject,
+    html: html,
+  });
+
+  if(error){
+     return new AppError('Email Sending failed', HttpStatus.INTERNAL_SERVER_ERROR)
+  }
+
+  if(data){
+    return data
+  }
+}

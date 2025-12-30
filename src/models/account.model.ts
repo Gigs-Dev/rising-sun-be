@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+import { doHash } from "../utils/func";
 
 const accountSchema = new Schema(
   {
@@ -9,19 +10,17 @@ const accountSchema = new Schema(
       unique: true,
       index: true,
     },
-
     acctNum: {
       type: String,
-      required: true,
-      unique: true,
     },
-
+    bankName: {
+      type: String,
+    },
     withdrawalPin: {
       type: String,
-      required: true,
       select: false, 
+      match: [/^\d{4}$/, "Withdrawal PIN must be exactly 4 digits"],
     },
-
     balance: {
       type: Number,
       default: 0,
@@ -36,6 +35,13 @@ const accountSchema = new Schema(
   },
   { timestamps: true }
 );
+
+accountSchema.pre("save", async function () {
+  if (!this.isModified("withdrawalPin")) return;
+
+  this.withdrawalPin = await doHash(this.withdrawalPin, 10);
+
+});
 
 const Account = model("Account", accountSchema);
 

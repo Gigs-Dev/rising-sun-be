@@ -86,10 +86,7 @@ export const createUser = async (req: Request, res: Response): Promise<any> => {
     const user = await AuthServices.verifySignupAndCreateUser({ fullName, email, phoneNumber, password, referringUserCode, verificationId });
 
     const userAcct = new Account({
-        userId: user._id,
-        acctNum: '',
-        withdrawalPin: '',
-        acctBal: 0
+        userId: user._id
     })
 
     await Promise.all([user.save(), userAcct.save()]);
