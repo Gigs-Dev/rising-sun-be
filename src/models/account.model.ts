@@ -15,6 +15,7 @@ const accountSchema = new Schema(
     },
     bankName: {
       type: String,
+      match: [/^\d{10}$/, "Withdrawal PIN must be exactly 4 digits"],
     },
     withdrawalPin: {
       type: String,
@@ -26,7 +27,6 @@ const accountSchema = new Schema(
       default: 0,
       min: 0,
     },
-
     status: {
       type: String,
       enum: ["active", "frozen", "closed"],
