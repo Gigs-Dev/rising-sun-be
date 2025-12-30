@@ -11,14 +11,11 @@ const userSchema = new Schema<UserType>({
     email: {
         type: String,
         required: true,
-        // unique: true,
+        unique: true,
         lowercase: true,
+        trim: true,
         pattern: ['^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$']
     },
-    // verificationId: {
-    //     type: String,
-    //     required: true
-    // },
     phoneNumber: {
         type: String,
         required: true,

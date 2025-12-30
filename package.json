@@ -13,6 +13,15 @@
     "start-prod": "node dist/app.js"
   },
   "dependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/compression": "^1.8.1",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^25.0.3",
+    "@types/nodemailer": "^7.0.4",
     "bcrypt": "^6.0.0",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
@@ -26,18 +35,10 @@
     "mongoose": "^9.0.2",
     "morgan": "^1.10.1",
     "nodemailer": "^7.0.11",
+    "resend": "^6.6.0",
     "rimraf": "^6.1.2",
-    "zod": "^4.2.1",
-    "@types/bcrypt": "^6.0.0",
-    "@types/compression": "^1.8.1",
-    "@types/cookie-parser": "^1.4.10",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/jsonwebtoken": "^9.0.10",
-    "@types/morgan": "^1.9.10",
-    "@types/node": "^25.0.3",
-    "@types/nodemailer": "^7.0.4",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "ts-node-dev": "^2.0.0"

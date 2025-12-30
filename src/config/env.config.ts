@@ -16,6 +16,7 @@ export const {
     publicKey,
     accessTokenTtl,
     refreshTokenTtl,
+    RESEND_API_KEY,
     FLW_PUBLIC_KEY,
     FLW_SECRET_KEY,
     FLW_ENCRYP_KEY,
