@@ -19,18 +19,12 @@ const accountSchema = new Schema(
     },
     withdrawalPin: {
       type: String,
-      select: false, 
       match: [/^\d{4}$/, "Withdrawal PIN must be exactly 4 digits"],
     },
     balance: {
       type: Number,
       default: 0,
       min: 0,
-    },
-    status: {
-      type: String,
-      enum: ["active", "frozen", "closed"],
-      default: "active",
     },
   },
   { timestamps: true }

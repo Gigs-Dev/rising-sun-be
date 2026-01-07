@@ -8,7 +8,6 @@ const accountTransactionSchema = new Schema(
       required: true,
       index: true,
     },
-
     accountId: {
       type: Schema.Types.ObjectId,
       ref: "Account",
@@ -31,14 +30,13 @@ const accountTransactionSchema = new Schema(
     },
     source: {
       type: String,
-      enum: ["referral", "withdrawal", "deposit", "bonus", "admin"],
+      enum: ['referral', 'withdrawal', 'deposit', "others"],
       required: true,
     },
-
     status: {
       type: String,
-      enum: ["success", "failed", "reversed"],
-      default: "success",
+      enum: ['completed', 'failed', 'reversed', 'pending'],
+      default: "pending",
     },
     meta: {
       type: Schema.Types.Mixed,
