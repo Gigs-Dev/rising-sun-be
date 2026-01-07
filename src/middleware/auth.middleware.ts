@@ -20,7 +20,7 @@ export const authorizeUser = (
     }
 
     const isOwner = authUserId === requestedUserId;
-    const isAdmin = req.user?.role === 'isAdmin';
+    const isAdmin = req.user.role === 'super_admin';
 
     if (req.user.isBanned) {
         return sendResponse(res, 403, false, 'User is banned');
@@ -47,7 +47,7 @@ export const authorizeAdmin = (req: Request, res: Response, next: NextFunction) 
     }
 
     const isOwner = authAdminId === requestedUserId;
-    const isAdmin = req.user?.role === 'isAdmin';
+    const isAdmin = req.user.role === 'super_admin';
 
     if (!isOwner && !isAdmin) {
         return sendResponse(res, 403, false, 'Access denied');
