@@ -14,35 +14,21 @@ const accountTransactionSchema = new Schema(
       ref: "Account",
       required: true,
     },
-
     type: {
       type: String,
       enum: ["credit", "debit"],
       required: true,
     },
-
     amount: {
       type: Number,
       required: true,
       min: 1,
     },
-
-    balanceBefore: {
-      type: Number,
-      required: true,
-    },
-
-    balanceAfter: {
-      type: Number,
-      required: true,
-    },
-
     reference: {
       type: String,
       required: true,
-      unique: true, // for idempotency
+      unique: true, 
     },
-
     source: {
       type: String,
       enum: ["referral", "withdrawal", "deposit", "bonus", "admin"],
@@ -54,7 +40,6 @@ const accountTransactionSchema = new Schema(
       enum: ["success", "failed", "reversed"],
       default: "success",
     },
-
     meta: {
       type: Schema.Types.Mixed,
     },

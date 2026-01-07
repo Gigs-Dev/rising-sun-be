@@ -41,6 +41,11 @@ const userSchema = new Schema<UserType>({
     isBanned: {
         type: Boolean,
         default: false
+    },
+    role: {
+        type: String,
+        enum: ['user', 'super_admin'],
+        default: 'user'
     }
 }, 
     { timestamps: true }

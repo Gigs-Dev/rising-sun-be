@@ -108,7 +108,7 @@ export const updatePassword = async (req:Request, res:Response) => {
     }
 
     /* -------------------- UPDATE -------------------- */
-    user.password = await doHash(newPassword, 12);
+    user.password = newPassword;
 
     // user.tokenVersion += 1;
 
