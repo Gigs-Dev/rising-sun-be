@@ -8,7 +8,7 @@ export const updateAccount = async (
 
     const userId = req.user.id; // from auth middleware
 
-    const allowedUpdates = ["acctNum", "bankName", "withdrawalPin"];
+    const allowedUpdates = ["acctNum", "bankName", "withdrawalPin", 'balance'];
     const updates: Record<string, any> = {};
 
     for (const key of allowedUpdates) {

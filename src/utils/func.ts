@@ -22,6 +22,7 @@ export const hmacHash = (data: string) => {
   return result;
 }
 
+
 export const verifyHmac = (data: string, receivedHash: string): boolean => {
   const expectedHash = hmacHash(data);
   return crypto.timingSafeEqual(
@@ -36,5 +37,21 @@ export const generateVerificationId = (): string => {
 };
 
 export function generateOTP() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return Math.floor(1000 + Math.random() * 9000).toString();
+}
+
+
+
+export function generateReferralCode(email: string): string {
+  const prefix = email.slice(0, 3).toUpperCase();
+
+  const randomLetters = Array.from({ length: 3 }, () =>
+    String.fromCharCode(65 + Math.floor(Math.random() * 26))
+  ).join("");
+
+  const randomDigits = Math.floor(Math.random() * 100)
+    .toString()
+    .padStart(2, "0");
+
+  return `${prefix}-${randomLetters}-${randomDigits}`;
 }
