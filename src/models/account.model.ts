@@ -31,12 +31,10 @@ const accountSchema = new Schema(
   { timestamps: true }
 );
 
-accountSchema.pre("save", async function (next: NextFunction) {
-  if (!this.isModified("withdrawalPin")) return next();
+accountSchema.pre("save", async function () {
+  if (!this.isModified("withdrawalPin")) return;
 
   this.withdrawalPin = await doHash(this.withdrawalPin, 10);
-
-  next()
 
 });
 

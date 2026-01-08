@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import Referrals from "../models/referral.model";
-import { generateReferralCode } from "../utils/func";
+import { generateUniqueReferralCode } from "../utils/gen-referral-code";
 
 
 class ReferralService {
@@ -16,7 +16,7 @@ class ReferralService {
       [
         {
           userId,
-          referralCode: generateReferralCode(email).toUpperCase(),
+          referralCode: (await generateUniqueReferralCode(email)).toUpperCase(),
         },
       ],
       { session }

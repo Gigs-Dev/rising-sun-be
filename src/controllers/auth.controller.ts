@@ -83,6 +83,12 @@ export const createUser = async (req: Request, res: Response): Promise<any> => {
         throw new AppError( "Missing required fields", HttpStatus.UNPROCESSABLE_ENTITY );
     }
 
+    const userExists = await User.findOne({email})
+
+    if(userExists){
+      return sendResponse(res, HttpStatus.CONFLICT_REQUEST, false, 'User already exist')
+    }
+
     const user = await AuthServices.verifySignupAndCreateUser({ fullName, email, phoneNumber, password, referringUserCode, verificationId });
 
     const userAcct = new Account({
