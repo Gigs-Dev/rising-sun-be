@@ -41,11 +41,8 @@ export function generateOTP() {
 }
 
 
-export function generateReferralCode(email: string): string {
-  if (!email || email.length < 3) {
-    throw new Error("Email must have at least 3 characters");
-  }
 
+export function generateReferralCode(email: string): string {
   const prefix = email.slice(0, 3).toUpperCase();
 
   const randomLetters = Array.from({ length: 3 }, () =>
