@@ -103,7 +103,7 @@ export const debitTransaction = async (req: Request, res: Response) => {
         const userId = req.user.id;
 
         if (!amount || !withdrawalPin || amount <= 0) {
-        throw new Error("Amount and 4-digit withdrawal PIN are required");
+            throw new Error("Amount and 4-digit withdrawal PIN are required");
         }
 
         // Fetch account
@@ -128,7 +128,7 @@ export const debitTransaction = async (req: Request, res: Response) => {
             amount,
             source: source || "withdrawal",
             status: "successful",
-            reference: `WD-${Date.now()}`, // simple unique reference
+            reference: `WD-${Date.now()}`, 
             },
         ],
         { session }
@@ -136,17 +136,12 @@ export const debitTransaction = async (req: Request, res: Response) => {
 
         await session.commitTransaction();
 
-        return res.status(200).json({
-        success: true,
-        message: "Withdrawal successful",
-        balance: account.balance - amount,
-        });
-
+        return sendResponse(res, HttpStatus.INTERNAL_SERVER_ERROR, true, 'Withdrawal successful', { balance: account.balance - amount })
 
     } catch (error) {
 
         await session.abortTransaction();
-        return res.status(400).json({ success: false, message: error.message });
+        return sendResponse(res, HttpStatus.SERVICE_UNAVAILABLE, false, error.message)
     } finally {
         session.endSession();
     }

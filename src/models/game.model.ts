@@ -6,16 +6,12 @@ const gameSchema = new Schema({
         ref: 'User',
         required: true
     },
-    stackAmount: {
+    amount: {
         type: Number,
         required: true
     },
-    choice: {
+    game: {
         type: String,
-        enum: ['up', 'down', 'neutral']
-    },
-    result: {
-        type: Boolean,
     },
 },
     { timestamps: true }
