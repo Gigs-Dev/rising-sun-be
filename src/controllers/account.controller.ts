@@ -4,6 +4,8 @@ import { AppError } from "../utils/app-error";
 import { HttpStatus } from "../constants/http-status";
 import { hashValidator } from "../utils/func";
 import { sendResponse } from "../utils/sendResponse";
+import AxiosInstance from "../utils/AxiosInstance";
+
 
 export const updateAccount = async (
   req: Request,
@@ -105,3 +107,30 @@ export const updateWithdrawalPin = async (req:Request, res: Response) => {
   sendResponse(res, 200, true, 'Withdrawal pin updated successfully');
   
 }
+
+
+export const getAllBanks = async (_req: Request, res: Response) => {
+  try {
+    const response = await AxiosInstance.get(
+      "banks/NG?include_provider_type=1",
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.FLW_SECRET_KEY}`,
+        },
+      }
+    );
+
+    res.status(200).json(response.data);
+  } catch (error: any) {
+    res.status(500).json({
+      message: "Failed to fetch banks",
+      error: error.response?.data || error.message,
+    });
+  }
+};
+
+
+export const verifyAcctNumber = async (req: Request, res: Response) => {
+
+}
+
