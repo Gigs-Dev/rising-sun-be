@@ -6,7 +6,7 @@ export const updateAccount = async (
   res: Response
 ): Promise<any> => {
 
-    const userId = req.user.id; // from auth middleware
+    const userId = req.user.id; 
 
     const allowedUpdates = ["acctNum", "bankName", "withdrawalPin", 'balance'];
     const updates: Record<string, any> = {};
@@ -46,10 +46,9 @@ export const getAccount = async (
   res: Response
 ): Promise<any> => {
 
-    const userId = req.user.id; // from auth middleware
+    const userId = req.user.id; 
 
     const account = await Account.findOne({ userId })
-      .select("-withdrawalPin"); // explicit, even though select:false
 
     if (!account) {
       return res.status(404).json({

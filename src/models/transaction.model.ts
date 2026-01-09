@@ -28,6 +28,9 @@ const accountTransactionSchema = new Schema(
       required: true,
       unique: true, 
     },
+    createdAt: Date,
+    payment_type: String,
+    currency: String,
     source: {
       type: String,
       enum: ['referral', 'withdrawal', 'deposit', "others"],
@@ -35,7 +38,7 @@ const accountTransactionSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ['completed', 'failed', 'reversed', 'pending'],
+      enum: ['successful', 'failed', 'reversed', 'pending'],
       default: "pending",
     },
     meta: {
@@ -46,6 +49,6 @@ const accountTransactionSchema = new Schema(
 );
 
 export const AccountTransaction = model(
-  "AccountTransaction",
+  "Transactions",
   accountTransactionSchema
 );
