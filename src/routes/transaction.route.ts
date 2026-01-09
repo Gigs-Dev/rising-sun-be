@@ -8,7 +8,7 @@ transactionRouter.post('/credit', verifyUserToken, creditTransaction);
 
 transactionRouter.post('/debit', verifyUserToken, debitTransaction);
 
-transactionRouter.get('/', verifyUserToken, transactionHistory);
+transactionRouter.get('/:userId', verifyUserToken, transactionHistory);
 
 
 export default transactionRouter;

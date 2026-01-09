@@ -49,6 +49,6 @@ const accountTransactionSchema = new Schema(
 );
 
 export const AccountTransaction = model(
-  "AccountTransaction",
+  "Transactions",
   accountTransactionSchema
 );
