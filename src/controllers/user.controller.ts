@@ -4,6 +4,7 @@ import { sendResponse } from "../utils/sendResponse";
 import { doHash, hashValidator } from "../utils/func";
 import { UserType } from "../types/type";
 import Referrals from "../models/referral.model";
+import Account from "../models/account.model";
 
 
 export const getAllUsers = async (req:Request, res: Response) => {
@@ -28,7 +29,15 @@ export const getUserDetails = async (req:Request, res: Response) => {
         return sendResponse(res, 404, false, 'User does not exist')
     }
 
-    sendResponse(res, 200, true, 'User details fetched successfully!', user)
+    const [referral, account] = await Promise.all([
+      Referrals.findOne({ userId: user._id }).lean(),
+      Account.findOne({ userId: user._id }).lean(),
+    ]);
+
+    sendResponse(res, 200, true, 'User details fetched successfully!', {
+      user,
+      userDetails: { referral, account },
+    })
 }
 
 

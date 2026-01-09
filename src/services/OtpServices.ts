@@ -54,7 +54,7 @@ class OtpService {
 
     // resend.emails.send({
     //   from: 'official.risebet@gmail.com',
-    //   to: email,
+    //   to: [email],
     //   subject: subject,
     //   html: html
     // });
@@ -72,7 +72,7 @@ class OtpService {
   /**
    * Generate numeric OTP (6 digits)
    */
-  private static generateOTP(length = 6): string {
+  private static generateOTP(length = 4): string {
     return Math.floor(1000 + Math.random() * 9000)
       .toString()
       .substring(0, length);

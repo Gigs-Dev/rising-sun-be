@@ -6,7 +6,12 @@ declare namespace Express {
       role?: string;
       tokenVersion?: number;
       isBanned?: boolean;
-      tokenVersion?: number
+      tokenVersion?: number;
+      userId?: string
     };
+
   }
+  interface Request {
+    userId?: string; 
+}
 }

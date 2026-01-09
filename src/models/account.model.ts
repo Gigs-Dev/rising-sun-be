@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 import { doHash } from "../utils/func";
-import { NextFunction } from "express";
+
 
 const accountSchema = new Schema(
   {
