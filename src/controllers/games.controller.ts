@@ -14,7 +14,6 @@ export const gameWinners = async (req: Request, res: Response) => {
         userId,
         amount,
         gameType,
-        ...req.body
     })
 
     await game.save();

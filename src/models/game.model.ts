@@ -12,6 +12,7 @@ const gameSchema = new Schema({
     },
     game: {
         type: String,
+        required: true
     },
 },
     { timestamps: true }
