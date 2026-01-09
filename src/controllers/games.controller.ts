@@ -13,7 +13,7 @@ export const gameWinners = async (req: Request, res: Response) => {
     const game = new Games({
         userId,
         amount,
-        gameType,
+        game: gameType,
     })
 
     await game.save();

@@ -2,9 +2,10 @@ import { Schema, model } from "mongoose";
 
 const gameSchema = new Schema({
     userId: {
-        userId: Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: true,
+        index: true
     },
     amount: {
         type: Number,
