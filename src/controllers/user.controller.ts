@@ -143,8 +143,3 @@ export const getMyReferrals = async (req:Request, res: Response) => {
   return sendResponse(res, 200, true, 'Referrals fetched', users);
 }
 
-
-
-export const bannUser = async (req:Request, res: Response) => {
-    console.log('coming soon!!!')
-}

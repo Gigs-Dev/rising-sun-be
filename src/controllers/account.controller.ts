@@ -1,5 +1,9 @@
 import { Request, Response } from "express";
 import Account from "../models/account.model";
+import { AppError } from "../utils/app-error";
+import { HttpStatus } from "../constants/http-status";
+import { hashValidator } from "../utils/func";
+import { sendResponse } from "../utils/sendResponse";
 
 export const updateAccount = async (
   req: Request,
@@ -62,3 +66,42 @@ export const getAccount = async (
     });
 
 };
+
+
+export const updateWithdrawalPin = async (req:Request, res: Response) => {
+  const userId = req.user.id;
+
+  const { withdrawalPin, newPin } = req.body;
+
+  const account = await Account.findById(userId);
+
+  if (!account) {
+    return sendResponse(res, 404, false, 'Account does not exist');
+  }
+
+  if(!withdrawalPin || !newPin){
+    throw new AppError('Missing required field', HttpStatus.UNPROCESSABLE_ENTITY)
+  }
+
+  const isMatch = await hashValidator(withdrawalPin, account.withdrawalPin)
+
+  if (!isMatch) {
+    return sendResponse(res, 401, false, 'Old password is incorrect');
+  }
+
+  if (withdrawalPin === newPin) {
+    return sendResponse(
+      res,
+      400,
+      false,
+      'New pin must be different from old pin'
+    );
+  }
+
+  account.withdrawalPin = newPin;
+
+  await account.save();
+
+  sendResponse(res, 200, true, 'Withdrawal pin updated successfully');
+  
+}
