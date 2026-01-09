@@ -9,7 +9,7 @@ export const signAccessToken = (
   },
   privateKey: string
 ): string => {
-  return jwt.sign(payload, privateKey, { expiresIn: "1h" });
+  return jwt.sign(payload, privateKey, { expiresIn: "12h" });
 };
 
 
