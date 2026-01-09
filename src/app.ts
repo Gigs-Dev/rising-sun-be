@@ -18,6 +18,7 @@ import userRouter from './routes/user.route';
 import { RefreshToken } from './controllers/refreshToken.controller';
 import accountRouter from './routes/account.route';
 import transactionRouter from './routes/transaction.route';
+import gameRouter from './routes/games.route';
 
 
 const app = express();
@@ -40,6 +41,7 @@ app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/accounts', accountRouter);
 app.use('/api/v1/transactions', transactionRouter);
+app.use('/api/v1/games', gameRouter);
 
 
 
