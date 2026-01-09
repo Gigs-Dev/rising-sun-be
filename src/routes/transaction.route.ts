@@ -6,9 +6,9 @@ const transactionRouter = Router();
 
 transactionRouter.post('/credit', verifyUserToken, creditTransaction);
 
-transactionRouter.patch('/debit', verifyUserToken, debitTransaction);
+transactionRouter.post('/debit', verifyUserToken, debitTransaction);
 
-transactionRouter.patch('/:userId', verifyUserToken, transactionHistory);
+transactionRouter.get('/', verifyUserToken, transactionHistory);
 
 
 export default transactionRouter;
