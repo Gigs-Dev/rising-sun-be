@@ -4,6 +4,8 @@ import { AppError } from "../utils/app-error";
 import { HttpStatus } from "../constants/http-status";
 import { hashValidator } from "../utils/func";
 import { sendResponse } from "../utils/sendResponse";
+import flutterwave from "../utils/flutterwave";
+
 
 export const updateAccount = async (
   req: Request,
@@ -71,7 +73,7 @@ export const getAccount = async (
 export const updateWithdrawalPin = async (req:Request, res: Response) => {
   const userId = req.user.id;
 
-  const { withdrawalPin, newPin } = req.body;
+  const { withdrawalPin } = req.body;
 
   const account = await Account.findById(userId);
 
@@ -79,7 +81,7 @@ export const updateWithdrawalPin = async (req:Request, res: Response) => {
     return sendResponse(res, 404, false, 'Account does not exist');
   }
 
-  if(!withdrawalPin || !newPin){
+  if(!withdrawalPin){
     throw new AppError('Missing required field', HttpStatus.UNPROCESSABLE_ENTITY)
   }
 
@@ -89,19 +91,37 @@ export const updateWithdrawalPin = async (req:Request, res: Response) => {
     return sendResponse(res, 401, false, 'Old password is incorrect');
   }
 
-  if (withdrawalPin === newPin) {
-    return sendResponse(
-      res,
-      400,
-      false,
-      'New pin must be different from old pin'
-    );
-  }
-
-  account.withdrawalPin = newPin;
+  await Account.findByIdAndUpdate(account, {new: true}, {$set: req.body})
 
   await account.save();
 
   sendResponse(res, 200, true, 'Withdrawal pin updated successfully');
   
 }
+
+
+export const getAllBanks = async (_req: Request, res: Response) => {
+  try {
+    const response = await flutterwave.get(
+      "banks/NG?include_provider_type=1",
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.FLW_SECRET_KEY}`,
+        },
+      }
+    );
+
+    res.status(200).json(response.data);
+  } catch (error: any) {
+    res.status(500).json({
+      message: "Failed to fetch banks",
+      error: error.response?.data || error.message,
+    });
+  }
+};
+
+
+export const verifyAcctNumber = async (req: Request, res: Response) => {
+
+}
+

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { sendResponse } from "../utils/sendResponse";
 import mongoose from "mongoose";
+import { HttpStatus } from "../constants/http-status";
 
 
 export const authorizeUser = (
@@ -47,7 +48,7 @@ export const authorizeAdmin = (req: Request, res: Response, next: NextFunction) 
     }
 
     const isOwner = authAdminId === requestedUserId;
-    const isAdmin = req.user.role === 'super_admin';
+    const isAdmin = req.user.role === 'super_admin' || req.user.role === 'admin';
 
     if (!isOwner && !isAdmin) {
         return sendResponse(res, 403, false, 'Access denied');
@@ -56,3 +57,10 @@ export const authorizeAdmin = (req: Request, res: Response, next: NextFunction) 
     next();
 }
 
+
+export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if (!["admin", "super_admin"].includes(req.user.role)) {
+    return sendResponse(res, HttpStatus.FORBIDDEN, false, 'Admins only');
+  }
+  next();
+};

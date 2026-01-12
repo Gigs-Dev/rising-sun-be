@@ -6,6 +6,7 @@ import { sendResponse } from "../utils/sendResponse";
 import { HttpStatus } from "../constants/http-status";
 import mongoose from "mongoose";
 import { hashValidator } from "../utils/func";
+import Withdrawal from "../models/admin/withdrawal";
 
 
 const Flutterwave = require('flutterwave-node-v3');
@@ -184,5 +185,48 @@ export const transactionHistory = async (req: Request, res: Response) => {
             message: error.message,
         });
     }
+}
+
+
+
+export const requestWithdrawal = async (req: Request, res:Response) => {
+    const user = req.user;
+    const { amount, pin } = req.body;
+
+    const account = await Account.findOne({ userId: user.id });
+    if (!account) {
+        return res.status(404).json({ message: "Account not found" });
+    }
+
+        // 1️⃣ Validate PIN
+    const isPinValid = await hashValidator(pin, account.withdrawalPin);
+    if (!isPinValid) {
+        return res.status(401).json({ message: "Invalid withdrawal PIN" });
+    }
+
+    // 2️⃣ Check available balance
+    const availableBalance = account.balance - account.lockedBalance;
+    if (availableBalance < amount) {
+        return res.status(400).json({ message: "Insufficient balance" });
+    }
+
+    // 3️⃣ Lock funds
+    account.lockedBalance += amount;
+    await account.save();
+
+        // 4️⃣ Create withdrawal request
+    const withdrawal = await Withdrawal.create({
+        userId: user.id,
+        accountId: account.id,
+        amount,
+        reference: `wd-${Date.now()}`,
+        bankSnapshot: {
+        acctNum: account.acctNum,
+        bankName: account.bankName,
+        },
+    });
+
+    return sendResponse(res, HttpStatus.OK, true, 'Withdrawal application submitted', withdrawal)
+
 }
 
