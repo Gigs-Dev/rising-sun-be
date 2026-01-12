@@ -22,6 +22,11 @@ const accountSchema = new Schema(
       type: String,
       match: [/^\d{4}$/, "Withdrawal PIN must be exactly 4 digits"],
     },
+    lockedBalance: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     balance: {
       type: Number,
       default: 0,
