@@ -142,29 +142,7 @@ export const debitTransaction = async (req: Request, res: Response) => {
     } catch (error) {
 
         await session.abortTransaction();
-        return   const { reason } = req.body;
-
-  const withdrawal = await Withdrawal.findById(req.params.id);
-  if (!withdrawal || withdrawal.status !== "PENDING") {
-    return res.status(400).json({ message: "Invalid withdrawal request" });
-  }
-
-  // 1️⃣ Update withdrawal
-  withdrawal.status = "REJECTED";
-  withdrawal.rejectionReason = reason;
-  await withdrawal.save();
-
-  // 2️⃣ Unlock funds
-  const account = await Account.findById(withdrawal.accountId);
-  if (account) {
-    account.lockedBalance -= withdrawal.amount;
-    await account.save();
-  }
-
-  return res.json({
-    message: "Withdrawal rejected",
-    data: withdrawal,
-  });
+        return sendResponse(res, HttpStatus.SERVICE_UNAVAILABLE, false, error.message)
     } finally {
         session.endSession();
     }

@@ -3,6 +3,7 @@ import Withdrawal from "../../models/admin/withdrawal";
 import Account from "../../models/account.model";
 import { sendResponse } from "../../utils/sendResponse";
 import { HttpStatus } from "../../constants/http-status";
+import { Types } from "mongoose";
 
 
 
@@ -14,11 +15,11 @@ export const approveWithdrawal = async (req: Request, res: Response) => {
     const withdrawal = await Withdrawal.findById(req.params.id);
 
     if (!withdrawal || withdrawal.status !== "PENDING") {
-        return res.status(400).json({ message: "Invalid withdrawal request" });
+        return sendResponse(res, HttpStatus.BAD_REQUEST, false, 'Invalid withdrawal request')
     }
 
     withdrawal.status = "APPROVED";
-    withdrawal.approvedBy = req.user.id; 
+    withdrawal.approvedBy = new Types.ObjectId(req.user.id);
 
     await withdrawal.save();
 
