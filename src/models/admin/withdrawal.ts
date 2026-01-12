@@ -1,7 +1,10 @@
 // models/withdrawal.model.ts
 import { Schema, model } from "mongoose";
+import { withdrawalType } from "../../types/type";
 
-const withdrawalSchema = new Schema(
+
+
+const withdrawalSchema = new Schema<withdrawalType>(
   {
     userId: {
       type: Schema.Types.ObjectId,
@@ -9,24 +12,22 @@ const withdrawalSchema = new Schema(
       required: true,
       index: true,
     },
-
     accountId: {
       type: Schema.Types.ObjectId,
       ref: "Account",
       required: true,
     },
-
     amount: {
       type: Number,
       required: true,
       min: 1,
     },
-
     bankSnapshot: {
       acctNum: String,
       bankName: String,
+      bankCode: Number,
+      accountNumber: Number
     },
-
     status: {
       type: String,
       enum: [
@@ -39,20 +40,16 @@ const withdrawalSchema = new Schema(
       ],
       default: "PENDING",
     },
-
     reference: {
       type: String,
       unique: true,
       required: true,
     },
-
     approvedBy: {
       type: Schema.Types.ObjectId,
       ref: "User",
     },
-
     rejectionReason: String,
-
     flutterwave: {
       transferId: String,
       response: Schema.Types.Mixed,
