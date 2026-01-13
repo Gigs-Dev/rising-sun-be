@@ -198,7 +198,7 @@ export const requestWithdrawal = async (req: Request, res:Response) => {
         return res.status(404).json({ message: "Account not found" });
     }
 
-        // 1️⃣ Validate PIN
+    // 1️⃣ Validate PIN
     const isPinValid = await hashValidator(withdrawalPin, account.withdrawalPin);
     if (!isPinValid) {
         return res.status(401).json({ message: "Invalid withdrawal PIN" });
@@ -214,15 +214,15 @@ export const requestWithdrawal = async (req: Request, res:Response) => {
     account.lockedBalance += amount;
     await account.save();
 
-        // 4️⃣ Create withdrawal request
+    // 4️⃣ Create withdrawal request
     const withdrawal = await Withdrawal.create({
         userId: user.id,
         accountId: account.id,
         amount,
         reference: `wd-${Date.now()}`,
         bankSnapshot: {
-        acctNum: account.acctNum,
-        bankName: account.bankName,
+            acctNum: account.acctNum,
+            bankName: account.bankName,
         },
     });
 
@@ -231,40 +231,3 @@ export const requestWithdrawal = async (req: Request, res:Response) => {
 }
 
 
-export const getMyWithdrawalHistory = async (req: Request, res: Response) => {
-  try {
-    const userId = req.user.id;
-
-    // pagination
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-
-    const [withdrawals, total] = await Promise.all([
-      Withdrawal.find({ user: userId })
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-
-      Withdrawal.countDocuments({ user: userId }),
-    ]);
-
-    return sendResponse(res, HttpStatus.OK, true, "Withdrawal history fetched", {
-      data: withdrawals,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
-  } catch (error) {
-    return sendResponse(
-      res,
-      HttpStatus.INTERNAL_SERVER_ERROR,
-      false,
-      "Failed to fetch withdrawal history"
-    );
-  }
-};
