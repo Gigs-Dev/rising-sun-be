@@ -140,13 +140,13 @@ export const signIn = async (req: Request, res: Response): Promise<any> => {
   const accessToken = signAccessToken(tokenPayload, privateKey);
   const refreshToken = signRefreshToken(tokenPayload, privateKey);
 
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/api/auth/refreshToken',
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+    res.cookie('token', accessToken, {
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    })
 
   const userSafe = user.toObject();
   delete userSafe.password;
@@ -161,14 +161,16 @@ export const signIn = async (req: Request, res: Response): Promise<any> => {
 
 
 // sign-out
-export const signOut = async (req:Request, res:Response) => {
-    res.clearCookie('refreshToken', {
-    path: '/api/auth/refreshToken'
+export const signOut = async (req: Request, res: Response) => {
+    res.clearCookie('token', {
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
     })
     .status(200)
-    .json({success: true, message: 'Logged out successfully!'})
+    .json({ success: true, message: 'Logged out successfully!' })
 }
-
 
 export const forgortPassword = async (req:Request, res:Response) => {
 
