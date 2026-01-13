@@ -28,7 +28,13 @@ const app = express();
 app.use(cookieParser())
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
-app.use(cors());
+app.use(cors({
+    origin: [
+      "http://localhost:3000",
+      "https://rising-sun-fe.vercel.app"
+    ],
+    credentials: true,
+  }));
 app.use(morgan('common'))
 app.use(compression())
 app.use(helmet())
