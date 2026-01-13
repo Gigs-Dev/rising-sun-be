@@ -7,6 +7,7 @@ import { HttpStatus } from "../constants/http-status";
 import mongoose from "mongoose";
 import { hashValidator } from "../utils/func";
 import Withdrawal from "../models/admin/withdrawal";
+import { AppError } from "../utils/app-error";
 
 
 const Flutterwave = require('flutterwave-node-v3');
@@ -191,7 +192,11 @@ export const transactionHistory = async (req: Request, res: Response) => {
 
 export const requestWithdrawal = async (req: Request, res:Response) => {
     const user = req.user;
-    const { amount, withdrawalPin } = req.body;
+    const { amount, withdrawalPin, bankCode, bankName, accountNum } = req.body;
+
+    if(!amount || !withdrawalPin || !bankCode || !bankName || !accountNum) {
+        throw new AppError('Missing required field', HttpStatus.UNPROCESSABLE_ENTITY)
+    }
 
     const account = await Account.findOne({ userId: user.id });
     if (!account) {
