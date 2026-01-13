@@ -6,6 +6,7 @@ import { HttpStatus } from "../../constants/http-status";
 import { Types } from "mongoose";
 import flutterwave from "../../utils/flutterwave";
 import { AccountTransaction } from "../../models/transaction.model";
+import { API_URL } from "../../config/env.config";
 
 
 export const approveAndSendWithdrawal = async (
@@ -40,7 +41,7 @@ export const approveAndSendWithdrawal = async (
       currency: "NGN",
       narration: "User withdrawal",
       reference: withdrawal.reference,
-      // callback_url: `${process.env.API_URL}/webhooks/flutterwave`,
+      callback_url: `${API_URL}webhooks/flutterwave`,
     });
 
     const data = response.data;
@@ -79,8 +80,8 @@ export const approveAndSendWithdrawal = async (
     );
   } catch (error: any) {
     // 🚨 VERY IMPORTANT: revert state
-    // withdrawal.status = "APPROVED"; // approved but not sent
-    // await withdrawal.save();
+    withdrawal.status = 'FAILED'; // approved but not sent
+    await withdrawal.save();
 
     return sendResponse(
       res,

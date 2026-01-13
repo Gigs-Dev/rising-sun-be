@@ -20,6 +20,7 @@ export const {
     FLW_PUBLIC_KEY,
     FLW_SECRET_KEY,
     FLW_ENCRYP_KEY,
-    CLIENT_URL
+    CLIENT_URL,
+    API_URL
 } = process.env;
 
