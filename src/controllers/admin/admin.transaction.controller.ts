@@ -4,28 +4,95 @@ import Account from "../../models/account.model";
 import { sendResponse } from "../../utils/sendResponse";
 import { HttpStatus } from "../../constants/http-status";
 import { Types } from "mongoose";
+import flutterwave from "../../utils/flutterwave";
+import { AccountTransaction } from "../../models/transaction.model";
+import { API_URL } from "../../config/env.config";
 
 
+export const approveAndSendWithdrawal = async (
+  req: Request,
+  res: Response
+) => {
 
-export const approveWithdrawal = async (req: Request, res: Response) => {
-    if (req.user.role !== "super_admin") {
-        return sendResponse(res, HttpStatus.FORBIDDEN, false, 'Unauthorized!');
-    }
+  const withdrawal = await Withdrawal.findById(req.params.id);
 
-    const withdrawal = await Withdrawal.findById(req.params.id);
+  console.log(withdrawal)
 
-    if (!withdrawal || withdrawal.status !== "PENDING") {
-        return sendResponse(res, HttpStatus.BAD_REQUEST, false, 'Invalid withdrawal request')
-    }
+  if (!withdrawal || withdrawal.status !== "PENDING") {
+    return sendResponse(
+      res,
+      HttpStatus.BAD_REQUEST,
+      false,
+      "Invalid withdrawal request"
+    );
+  }
 
-    withdrawal.status = "APPROVED";
-    withdrawal.approvedBy = new Types.ObjectId(req.user.id);
+  // // 1️⃣ Approve internally
+  withdrawal.status = "PROCESSING";
+  withdrawal.approvedBy = new Types.ObjectId(req.user.id);
+  await withdrawal.save();
+
+  try {
+    // 2️⃣ Send payout to Flutterwave
+    const response = await flutterwave.post("/transfers", {
+      account_bank: withdrawal.bankSnapshot.bankCode, // IMPORTANT
+      account_number: withdrawal.bankSnapshot.acctNum,
+      amount: withdrawal.amount,
+      currency: "NGN",
+      narration: "User withdrawal",
+      reference: withdrawal.reference,
+      callback_url: `${API_URL}webhooks/flutterwave`,
+    });
+
+    const data = response.data;
+
+  //   // 3️⃣ Save Flutterwave metadata
+    withdrawal.flutterwave = {
+      transferId: response.data.data.id,
+      response: response.data,
+    };
 
     await withdrawal.save();
 
-    return sendResponse(res, HttpStatus.OK, true, 'Withdrawal approved successfully', withdrawal)
+    await AccountTransaction.create({
+        userId: withdrawal.userId,
+        accountId: withdrawal.accountId,
+        type: 'debit',
+        amount: data.amount,
+        source: 'deposit',
+        status: data.status,
+        createdAt: data.created_at,
+        payment_type: data.payment_type,
+        reference: data.tx_ref,
+        currency: data.currency,
+        meta: {
+            bankName: data.meta.bankname,
+            originatorName: data.meta.originatorname
+        }
+    })
 
-}
+    return sendResponse(
+      res,
+      HttpStatus.OK,
+      true,
+      "Withdrawal approved and payout initiated",
+      withdrawal
+    );
+  } catch (error: any) {
+    // 🚨 VERY IMPORTANT: revert state
+    withdrawal.status = 'FAILED'; // approved but not sent
+    await withdrawal.save();
+
+    return sendResponse(
+      res,
+      HttpStatus.SERVICE_UNAVAILABLE,
+      false,
+      "Withdrawal approved but payout failed. Retry required.",
+      error.response?.data || error.message
+    );
+  }
+};
+
 
 
 export const rejectWithdrawal = async (req: Request, res: Response) => {

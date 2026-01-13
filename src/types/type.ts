@@ -37,7 +37,20 @@ export interface SendOtpResult {
   message: string;
 }
 
-export interface AccountType {
-
+export interface withdrawalType extends Document {
+  userId: any;
+  accountId: any;
+  amount: number;
+  bankSnapshot: {
+      acctNum: String;
+      bankName: String;
+      bankCode: Number;
+      accountNumber: Number;
+  };
+  status: string;
+  reference: string;
+  approvedBy: any;
+  rejectionReason: string;
+  flutterwave: any
 }
 

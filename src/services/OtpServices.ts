@@ -53,7 +53,7 @@ class OtpService {
     // const resend = new Resend(RESEND_API_KEY);
 
     // resend.emails.send({
-    //   from: 'official.risebet@gmail.com',
+    //   from: 'officials@risebet.com',
     //   to: [email],
     //   subject: subject,
     //   html: html

@@ -26,7 +26,7 @@ const app = express();
 
 // middlewares
 app.use(cookieParser())
-app.use(express.json())
+// app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(cors());
 app.use(morgan('common'))
@@ -43,7 +43,7 @@ app.use('/api/v1/users', userRouter);
 app.use('/api/v1/accounts', accountRouter);
 app.use('/api/v1/transactions', transactionRouter);
 app.use('/api/v1/games', gameRouter);
-app.use('/api/v1/admin', adminRouter);
+app.use('/api/v1/admins', adminRouter);
 
 
 
