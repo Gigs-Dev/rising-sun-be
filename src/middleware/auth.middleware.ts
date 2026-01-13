@@ -36,10 +36,9 @@ export const authorizeUser = (
 
 
 export const authorizeAdmin = (req: Request, res: Response, next: NextFunction) => {
-    const authAdminId = req.user?.id;
-    const requestedUserId = req.params.id;
+    const authAdminId = req.user.id;
 
-    if (!mongoose.Types.ObjectId.isValid(requestedUserId)) {
+    if (!mongoose.Types.ObjectId.isValid(authAdminId)) {
         return sendResponse(res, 400, false, 'Invalid user ID');
     }
 
@@ -47,10 +46,9 @@ export const authorizeAdmin = (req: Request, res: Response, next: NextFunction) 
         return sendResponse(res, 401, false, 'Authentication required');
     }
 
-    const isOwner = authAdminId === requestedUserId;
     const isAdmin = req.user.role === 'super_admin' || req.user.role === 'admin';
 
-    if (!isOwner && !isAdmin) {
+    if (!isAdmin) {
         return sendResponse(res, 403, false, 'Access denied');
     }
 
