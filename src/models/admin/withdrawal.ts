@@ -39,11 +39,13 @@ const withdrawalSchema = new Schema<withdrawalType>(
         "FAILED",
       ],
       default: "PENDING",
+      index: true
     },
     reference: {
       type: String,
       unique: true,
       required: true,
+      index: true
     },
     approvedBy: {
       type: Schema.Types.ObjectId,

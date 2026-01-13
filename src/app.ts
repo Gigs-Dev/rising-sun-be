@@ -43,7 +43,7 @@ app.use('/api/v1/users', userRouter);
 app.use('/api/v1/accounts', accountRouter);
 app.use('/api/v1/transactions', transactionRouter);
 app.use('/api/v1/games', gameRouter);
-app.use('/api/v1/admin', adminRouter);
+app.use('/api/v1/admins', adminRouter);
 
 
 

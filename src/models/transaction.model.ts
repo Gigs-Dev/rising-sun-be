@@ -27,6 +27,7 @@ const accountTransactionSchema = new Schema(
       type: String,
       required: true,
       unique: true, 
+      index: true
     },
     createdAt: Date,
     payment_type: String,

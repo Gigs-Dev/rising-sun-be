@@ -20,7 +20,8 @@ const accountSchema = new Schema(
     },
     withdrawalPin: {
       type: String,
-      match: [/^\d{4}$/, "Withdrawal PIN must be exactly 4 digits"],
+      min: [3, 'Must be four digits pin'],
+      max: [4, 'Must be four digits pin']
     },
     lockedBalance: {
       type: Number,

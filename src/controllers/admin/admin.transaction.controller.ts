@@ -5,6 +5,7 @@ import { sendResponse } from "../../utils/sendResponse";
 import { HttpStatus } from "../../constants/http-status";
 import { Types } from "mongoose";
 import flutterwave from "../../utils/flutterwave";
+import { AccountTransaction } from "../../models/transaction.model";
 
 
 export const approveAndSendWithdrawal = async (
@@ -13,6 +14,8 @@ export const approveAndSendWithdrawal = async (
 ) => {
 
   const withdrawal = await Withdrawal.findById(req.params.id);
+
+  console.log(withdrawal)
 
   if (!withdrawal || withdrawal.status !== "PENDING") {
     return sendResponse(
@@ -23,7 +26,7 @@ export const approveAndSendWithdrawal = async (
     );
   }
 
-  // 1️⃣ Approve internally
+  // // 1️⃣ Approve internally
   withdrawal.status = "PROCESSING";
   withdrawal.approvedBy = new Types.ObjectId(req.user.id);
   await withdrawal.save();
@@ -37,16 +40,35 @@ export const approveAndSendWithdrawal = async (
       currency: "NGN",
       narration: "User withdrawal",
       reference: withdrawal.reference,
-      callback_url: `${process.env.API_URL}/webhooks/flutterwave`,
+      // callback_url: `${process.env.API_URL}/webhooks/flutterwave`,
     });
 
-    // 3️⃣ Save Flutterwave metadata
+    const data = response.data;
+
+  //   // 3️⃣ Save Flutterwave metadata
     withdrawal.flutterwave = {
       transferId: response.data.data.id,
       response: response.data,
     };
 
     await withdrawal.save();
+
+    await AccountTransaction.create({
+        userId: withdrawal.userId,
+        accountId: withdrawal.accountId,
+        type: 'debit',
+        amount: data.amount,
+        source: 'deposit',
+        status: data.status,
+        createdAt: data.created_at,
+        payment_type: data.payment_type,
+        reference: data.tx_ref,
+        currency: data.currency,
+        meta: {
+            bankName: data.meta.bankname,
+            originatorName: data.meta.originatorname
+        }
+    })
 
     return sendResponse(
       res,
@@ -57,8 +79,8 @@ export const approveAndSendWithdrawal = async (
     );
   } catch (error: any) {
     // 🚨 VERY IMPORTANT: revert state
-    withdrawal.status = "APPROVED"; // approved but not sent
-    await withdrawal.save();
+    // withdrawal.status = "APPROVED"; // approved but not sent
+    // await withdrawal.save();
 
     return sendResponse(
       res,

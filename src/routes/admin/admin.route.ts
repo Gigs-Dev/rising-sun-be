@@ -5,9 +5,9 @@ import { authorizeAdmin } from "../../middleware/auth.middleware";
 
 const adminRouter = Router()
 
-adminRouter.post('/withdrawals/:id/approve', verifyAdminToken, authorizeAdmin,  approveAndSendWithdrawal);
+adminRouter.patch('/withdrawals/:id/approve', verifyAdminToken, authorizeAdmin,  approveAndSendWithdrawal);
 
-adminRouter.post('/withdrawals/:id/reject', verifyAdminToken, authorizeAdmin, rejectWithdrawal)
+adminRouter.patch('/withdrawals/:id/reject', verifyAdminToken, authorizeAdmin, rejectWithdrawal)
 
 
 export default adminRouter;
