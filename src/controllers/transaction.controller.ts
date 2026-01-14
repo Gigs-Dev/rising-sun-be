@@ -55,14 +55,14 @@ export const creditTransaction = async (req: Request, res: Response) => {
         const account = await Account.findOne({ userId }).session(session);
 
         if (!account) {
-        throw new Error("Account not found");
+            throw new Error("Account not found");
         }
 
         // 4️⃣ Credit balance (atomic)
         await Account.updateOne(
-        { _id: account._id },
-        { $inc: { balance: data.amount } },
-        { session }
+            { _id: account._id },
+            { $inc: { balance: data.amount } },
+            { session }
         );
 
         await AccountTransaction.create([{
@@ -101,11 +101,11 @@ export const debitTransaction = async (req: Request, res: Response) => {
     session.startTransaction();
 
     try {
-        const { amount, withdrawalPin, source } = req.body;
+        const { amount, withdrawalPin, bankCode, bankName, accountNum } = req.body;
         const userId = req.user.id;
 
-        if (!amount || !withdrawalPin || amount <= 0) {
-            throw new Error("Amount and 4-digit withdrawal PIN are required");
+        if (!amount || !withdrawalPin || amount <= 0 || !bankCode || !bankName || !accountNum) {
+            throw new Error("Missing required fields");
         }
 
         // Fetch account
@@ -128,9 +128,11 @@ export const debitTransaction = async (req: Request, res: Response) => {
             accountId: account._id,
             type: "debit",
             amount,
-            source: source || "withdrawal",
-            status: "successful",
+            status: "pending",
             reference: `WD-${Date.now()}`, 
+            meta: {
+                
+            }
             },
         ],
         { session }

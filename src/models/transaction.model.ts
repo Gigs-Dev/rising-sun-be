@@ -35,7 +35,6 @@ const accountTransactionSchema = new Schema(
     source: {
       type: String,
       enum: ['referral', 'withdrawal', 'deposit', "others"],
-      required: true,
     },
     status: {
       type: String,

@@ -1,7 +1,12 @@
 import { Types, startSession } from "mongoose";
 import Withdrawal from "../models/admin/withdrawal";
 import { AccountTransaction } from "../models/transaction.model";
-import flutterwave from "../utils/flutterwave";
+import { FLW_PUBLIC_KEY, FLW_SECRET_KEY } from "../config/env.config";
+
+
+const Flutterwave = require('flutterwave-node-v3');
+const flw = new Flutterwave(FLW_PUBLIC_KEY, FLW_SECRET_KEY);
+
 
 export class WithdrawalService {
   static async approveAndSend(withdrawalId: string, adminId: string) {
@@ -79,9 +84,7 @@ export class WithdrawalService {
       /**
        * 3️⃣ SEND PAYOUT
        */
-      const flwResponse = await flutterwave.post(
-        "/transfers",
-        {
+      const flwResponse = await flw.Transfer.initiate({
           account_bank: withdrawal.bankSnapshot.bankCode,
           account_number: withdrawal.bankSnapshot.acctNum,
           amount: withdrawal.amount,
@@ -101,50 +104,59 @@ export class WithdrawalService {
       const data = flwResponse?.data?.data;
       if (!data) throw new Error("Invalid Flutterwave response");
 
-      /**
-       * 4️⃣ SAVE PAYOUT METADATA
-       */
-      withdrawal.status = "SENT";
-      withdrawal.flutterwave = {
-        transferId: data.id,
-        response: flwResponse.data,
-      };
+      if(flwResponse?.status === 'success' && flwResponse?.data?.status === 'NEW'){
+        withdrawal.status === 'APPROVED'
 
-      await withdrawal.save({ session });
-
-      /**
-       * 5️⃣ CREATE TRANSACTION (IDEMPOTENT)
-       * Prevent duplicates using reference
-       */
-      await AccountTransaction.updateOne(
-        { reference: data.tx_ref },
-        {
-          $setOnInsert: {
-            userId: withdrawal.userId,
-            accountId: withdrawal.accountId,
-            type: "debit",
-            source: "withdrawal",
-            amount: data.amount,
-            currency: data.currency,
-            status: data.status,
-            payment_type: data.payment_type,
-            meta: {
-              bankName: data.meta?.bankname,
-              originatorName: data.meta?.originatorname,
+        /**
+         * 4️⃣ SAVE PAYOUT METADATA
+         */
+        withdrawal.flutterwave = {
+          transferId: data.id,
+          response: flwResponse.data,
+        };
+  
+        await withdrawal.save({ session });
+  
+        /**
+         * 5️⃣ CREATE TRANSACTION (IDEMPOTENT)
+         * Prevent duplicates using reference
+         */
+        await AccountTransaction.updateOne(
+          { reference: data.tx_ref },
+          {
+            $setOnInsert: {
+              userId: withdrawal.userId,
+              accountId: withdrawal.accountId,
+              type: "debit",
+              source: "withdrawal",
+              amount: data.amount,
+              currency: data.currency,
+              status: data.status,
+              payment_type: data.payment_type,
+              meta: {
+                bankName: data.meta?.bankname,
+                originatorName: data.meta?.originatorname,
+              },
             },
           },
-        },
-        { upsert: true, session }
-      );
+          { upsert: true, session }
+        );
 
-      await session.commitTransaction();
-      session.endSession();
+        await session.commitTransaction();
+        session.endSession();
+  
+        return {
+          message: "Withdrawal approved and payout initiated",
+          withdrawal,
+        };
 
-      return {
-        status: "SENT",
-        message: "Withdrawal approved and payout initiated",
-        withdrawal,
-      };
+      } else {
+        return {
+          message: "Something went wrong",
+        }
+      }
+
+
     } catch (error) {
       await session.abortTransaction();
       session.endSession();
