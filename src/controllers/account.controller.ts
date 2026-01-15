@@ -72,30 +72,27 @@ export const getAccount = async (
 
 export const updateWithdrawalPin = async (req:Request, res: Response) => {
   const userId = req.user.id;
-
   const { withdrawalPin } = req.body;
 
-  const account = await Account.findById(userId);
+  if (!withdrawalPin ) {
+    throw new AppError('Missing required fields', HttpStatus.UNPROCESSABLE_ENTITY);
+  }
+
+  const account = await Account.findOne({ user: userId });
 
   if (!account) {
     return sendResponse(res, 404, false, 'Account does not exist');
   }
 
-  if(!withdrawalPin){
-    throw new AppError('Missing required field', HttpStatus.UNPROCESSABLE_ENTITY)
-  }
-
-  const isMatch = await hashValidator(withdrawalPin, account.withdrawalPin)
+  const isMatch = await hashValidator(withdrawalPin, account.withdrawalPin);
 
   if (!isMatch) {
-    return sendResponse(res, 401, false, 'Old password is incorrect');
+    return sendResponse(res, 401, false, 'Old PIN is incorrect');
   }
-
-  await Account.findByIdAndUpdate(account, {new: true}, {$set: req.body})
 
   await account.save();
 
-  sendResponse(res, 200, true, 'Withdrawal pin updated successfully');
+  return sendResponse(res, 200, true, 'Withdrawal pin verified successfully');
   
 }
 

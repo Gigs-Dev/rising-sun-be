@@ -39,12 +39,13 @@ export class DebitTransactionService {
           _id: transactionId }, {
             $set: {
               approvedBy: new Types.ObjectId(adminId),
+              reference: flwResponse.data.reference
             }
           }
         )
       }
     } catch (error) {
-      
+      throw new Error(error)
     }
 
   }

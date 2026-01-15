@@ -89,7 +89,7 @@ export const debitTransaction = async (req: Request, res: Response) => {
 
         await session.commitTransaction();
 
-        return sendResponse(res, HttpStatus.INTERNAL_SERVER_ERROR, true, 'Withdrawal successful', { balance: account.balance - amount })
+        return sendResponse(res, HttpStatus.OK, true, 'Withdrawal successful', { balance: account.balance - amount })
 
     } catch (error) {
 
