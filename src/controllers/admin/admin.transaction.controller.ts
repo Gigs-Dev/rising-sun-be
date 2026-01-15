@@ -4,6 +4,8 @@ import Account from "../../models/account.model";
 import { sendResponse } from "../../utils/sendResponse";
 import { HttpStatus } from "../../constants/http-status";
 import { WithdrawalService } from "../../services/withdrawal.service";
+import { getTransactionTotalsService } from "../../services/admins/admin.transaction.service";
+
 
 
 export const approveAndSendWithdrawal = async (
@@ -89,3 +91,53 @@ export const getUserWithdrawalHistory = async (req: Request, res: Response) => {
     );
   }
 };
+
+
+export const getTotalTransactions = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { type, from, to } = req.query;
+    const userId = req.user.id;
+
+    // Validate type
+    if (type && !["credit", "debit"].includes(type as string)) {
+      return sendResponse(
+        res,
+        HttpStatus.BAD_REQUEST,
+        false,
+        "type must be either credit or debit"
+      );
+    }
+
+    const totals = await getTransactionTotalsService({
+      userId,
+      type: type as "credit" | "debit",
+      from: from as string,
+      to: to as string,
+    });
+
+    return sendResponse(
+      res,
+      HttpStatus.OK,
+      true,
+      "Transaction totals fetched successfully",
+      {
+        ...totals,
+        type: type || "all",
+        from: from || null,
+        to: to || null,
+      }
+    );
+  } catch (error: any) {
+    return sendResponse(
+      res,
+      error.statusCode || HttpStatus.INTERNAL_SERVER_ERROR,
+      false,
+      error.message
+    );
+  }
+};
+
+

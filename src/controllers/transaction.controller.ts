@@ -77,10 +77,11 @@ export const debitTransaction = async (req: Request, res: Response) => {
             type: "debit",
             amount,
             status: "pending",
-            reference: `WD-${Date.now()}`, 
             meta: {
-
-            }
+                bankName: bankName,
+                accountNumber: accountNum,
+                bankCode: bankCode
+            },
             },
         ],
         { session }
