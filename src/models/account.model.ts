@@ -23,11 +23,6 @@ const accountSchema = new Schema(
       min: [3, 'Must be four digits pin'],
       max: [4, 'Must be four digits pin']
     },
-    lockedBalance: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
     balance: {
       type: Number,
       default: 0,

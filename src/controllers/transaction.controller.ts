@@ -94,7 +94,7 @@ export const debitTransaction = async (req: Request, res: Response) => {
     } catch (error) {
 
         await session.abortTransaction();
-        return sendResponse(res, HttpStatus.SERVICE_UNAVAILABLE, false, error.message)
+        return sendResponse(res, HttpStatus.INTERNAL_SERVER_ERROR, false, error.message)
     } finally {
         session.endSession();
     }
@@ -161,13 +161,13 @@ export const requestWithdrawal = async (req: Request, res:Response) => {
     }
 
     // 2️⃣ Check available balance
-    const availableBalance = account.balance - account.lockedBalance;
-    if (availableBalance < amount) {
-        return res.status(400).json({ message: "Insufficient balance" });
-    }
+    // const availableBalance = account.balance - account.lockedBalance;
+    // if (availableBalance < amount) {
+    //     return res.status(400).json({ message: "Insufficient balance" });
+    // }
 
-    // 3️⃣ Lock funds
-    account.lockedBalance += amount;
+    // // 3️⃣ Lock funds
+    // account.lockedBalance += amount;
     await account.save();
 
     // 4️⃣ Create withdrawal request

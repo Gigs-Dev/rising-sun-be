@@ -3,7 +3,7 @@ import Withdrawal from "../../models/admin/withdrawal";
 import Account from "../../models/account.model";
 import { sendResponse } from "../../utils/sendResponse";
 import { HttpStatus } from "../../constants/http-status";
-import { WithdrawalService } from "../../services/withdrawal.service";
+import { DebitTransactionService } from "../../services/withdrawal.service";
 import { getTransactionTotalsService } from "../../services/admins/admin.transaction.service";
 
 
@@ -14,12 +14,14 @@ export const approveAndSendWithdrawal = async (
 ) => {
 
    try {
-    const result = await WithdrawalService.approveAndSend(
+    const result = await DebitTransactionService.approveAndSend(
       req.params.id,
       req.user.id
     );
 
-    return sendResponse(res, 200, true, result.message, result.withdrawal);
+    console.log(result)
+
+    // return sendResponse(res, 200, true, result.message, result.);
   } catch (error: any) {
     return sendResponse(res, 400, false, error.message);
   }
@@ -42,11 +44,11 @@ export const rejectWithdrawal = async (req: Request, res: Response) => {
     await withdrawal.save();
 
     // 2️⃣ Unlock funds
-    const account = await Account.findById(withdrawal.accountId);
-    if (account) {
-        account.lockedBalance -= withdrawal.amount;
-        await account.save();
-    }
+    // const account = await Account.findById(withdrawal.accountId);
+    // if (account) {
+    //     account.lockedBalance -= withdrawal.amount;
+    //     await account.save();
+    // }
 
     return sendResponse(res, HttpStatus.OK, true, 'Withdrawal rejected', withdrawal)
 

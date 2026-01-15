@@ -24,7 +24,7 @@ const accountTransactionSchema = new Schema(
     },
     reference: {
       type: String,
-      required: true,
+      // required: true,
       unique: true, 
       index:true
     },
