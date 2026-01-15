@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { FLW_PUBLIC_KEY, FLW_SECRET_KEY } from "../config/env.config";
 import Account from "../models/account.model";
 import { AccountTransaction } from "../models/transaction.model";
 import { sendResponse } from "../utils/sendResponse";
@@ -8,92 +7,41 @@ import mongoose from "mongoose";
 import { hashValidator } from "../utils/func";
 import Withdrawal from "../models/admin/withdrawal";
 import { AppError } from "../utils/app-error";
-
-
-const Flutterwave = require('flutterwave-node-v3');
-
-const flw = new Flutterwave(FLW_PUBLIC_KEY!, FLW_SECRET_KEY!)
+import { creditAccountService } from "../services/transaction.service";
 
 
 export const creditTransaction = async (req: Request, res: Response) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    try {
-        const { transaction_id } = req.body;
-        const userId = req.user.id;
+  try {
+    const { transaction_id } = req.body;
+    const userId = req.user.id;
 
-        if (!transaction_id) {
-            return sendResponse(res, HttpStatus.BAD_REQUEST, false, 'transaction ID is require', null)
-        }
-
-        // 1️⃣ Verify Flutterwave transaction
-        const response = await flw.Transaction.verify({
-        id: Number(transaction_id),
-        });
-
-        const data = response.data;
-
-        if (
-            data.status !== "successful" ||
-            data.amount <= 0 ||
-            data.currency !== "NGN" ||
-            !data.tx_ref
-        ) {
-            throw new Error("Invalid or unsuccessful transaction");
-        }
-
-        // 2️⃣ Prevent double credit (idempotency)
-        const alreadyProcessed = await AccountTransaction.exists({
-        reference: data.tx_ref,
-        });
-
-        if (alreadyProcessed) {
-            throw new Error("Transaction already processed");
-        }
-
-        // 3️⃣ Fetch account
-        const account = await Account.findOne({ userId }).session(session);
-
-        if (!account) {
-            throw new Error("Account not found");
-        }
-
-        // 4️⃣ Credit balance (atomic)
-        await Account.updateOne(
-            { _id: account._id },
-            { $inc: { balance: data.amount } },
-            { session }
-        );
-
-        await AccountTransaction.create([{
-            userId,
-            accountId: account._id,
-            type: 'credit',
-            amount: data.amount,
-            source: 'deposit',
-            status: data.status,
-            createdAt: data.created_at,
-            payment_type: data.payment_type,
-            reference: data.tx_ref,
-            currency: data.currency,
-            meta: {
-                bankName: data.meta.bankname,
-                originatorName: data.meta.originatorname
-            }
-        }],  { session })
-
-        await session.commitTransaction();
-
-        return sendResponse(res, HttpStatus.OK, false, 'Account credited successfully', data)
-
-    } catch (error: any) {
-        await session.abortTransaction();
-
-        return sendResponse(res, HttpStatus.INTERNAL_SERVER_ERROR, false, error.message)
-    } finally {
-        session.endSession();
+    if (!transaction_id) {
+      return sendResponse(
+        res,
+        HttpStatus.BAD_REQUEST,
+        false,
+        "transaction ID is required"
+      );
     }
-}
+
+    const data = await creditAccountService(userId, Number(transaction_id));
+
+    return sendResponse(
+      res,
+      HttpStatus.OK,
+      true,
+      "Account credited successfully",
+      data
+    );
+  } catch (error: any) {
+    return sendResponse(
+      res,
+      error.statusCode || HttpStatus.INTERNAL_SERVER_ERROR,
+      false,
+      error.message
+    );
+  }
+};
 
 
 export const debitTransaction = async (req: Request, res: Response) => {
@@ -131,7 +79,7 @@ export const debitTransaction = async (req: Request, res: Response) => {
             status: "pending",
             reference: `WD-${Date.now()}`, 
             meta: {
-                
+
             }
             },
         ],

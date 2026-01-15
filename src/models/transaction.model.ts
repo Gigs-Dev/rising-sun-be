@@ -6,7 +6,6 @@ const accountTransactionSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     accountId: {
       type: Schema.Types.ObjectId,
@@ -27,7 +26,7 @@ const accountTransactionSchema = new Schema(
       type: String,
       required: true,
       unique: true, 
-      index: true
+      index:true
     },
     createdAt: Date,
     payment_type: String,

@@ -14,7 +14,7 @@ export const verifyUserToken = (
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return sendResponse(res, 401, false, 'Authentication required');
+      return sendResponse(res, 433, false, 'Authentication required');
     }
 
     const token = authHeader.split(' ')[1];
@@ -32,7 +32,7 @@ export const verifyUserToken = (
 
     next();
   } catch (err) {
-    return sendResponse(res, 405, false, 'Invalid or expired token');
+    return sendResponse(res, 433, false, 'Invalid or expired token');
   }
 };
 
