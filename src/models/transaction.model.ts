@@ -6,7 +6,6 @@ const accountTransactionSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     accountId: {
       type: Schema.Types.ObjectId,
@@ -25,9 +24,9 @@ const accountTransactionSchema = new Schema(
     },
     reference: {
       type: String,
-      required: true,
+      // required: true,
       unique: true, 
-      index: true
+      index:true
     },
     createdAt: Date,
     payment_type: String,
@@ -35,7 +34,6 @@ const accountTransactionSchema = new Schema(
     source: {
       type: String,
       enum: ['referral', 'withdrawal', 'deposit', "others"],
-      required: true,
     },
     status: {
       type: String,

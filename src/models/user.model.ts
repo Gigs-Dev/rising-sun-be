@@ -23,7 +23,7 @@ const userSchema = new Schema<UserType>({
     password: {
         type: String,
         required: true,
-        minLength: [8, 'Passsword must be at least 8 characters!'],
+        min: [8, 'Passsword must be at least 8 characters!'],
         select: false,
     },
     referringUserCode: {

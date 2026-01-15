@@ -9,7 +9,7 @@ accountRouter.patch('/', verifyUserToken,  updateAccount);
 
 accountRouter.get('/', verifyUserToken,  getAccount);
 
-accountRouter.patch('/withdrawal-pin', verifyUserToken,  updateWithdrawalPin);
+accountRouter.patch('/:id/withdrawal-pin', verifyUserToken,  updateWithdrawalPin);
 
 accountRouter.get('/getAllBanks', verifyUserToken,  getAllBanks);
 

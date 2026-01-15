@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { creditTransaction, requestWithdrawal, transactionHistory } from "../controllers/transaction.controller";
+import { creditTransaction, debitTransaction, requestWithdrawal, transactionHistory } from "../controllers/transaction.controller";
 import { verifyUserToken } from "../middleware/verifyToken";
 
 const transactionRouter = Router();
@@ -7,6 +7,8 @@ const transactionRouter = Router();
 transactionRouter.post('/credit', verifyUserToken, creditTransaction);
 
 transactionRouter.post('/withdrawal-request', verifyUserToken, requestWithdrawal);
+
+transactionRouter.post('/debit', verifyUserToken, debitTransaction);
 
 transactionRouter.get('/:userId', verifyUserToken, transactionHistory);
 

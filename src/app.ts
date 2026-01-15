@@ -31,7 +31,7 @@ app.use(express.urlencoded({extended: true}))
 app.use(cors({
     origin: [
       "http://localhost:3000",
-      "https://rising-sun-fe.vercel.app"
+      "https://rising-sun-admin.vercel.app"
     ],
     credentials: true,
   }));
