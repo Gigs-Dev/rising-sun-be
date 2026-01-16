@@ -25,6 +25,15 @@ interface DebitTransactionPayload {
 }
 
 
+interface TransactionHistoryParams {
+  userId: string;
+  type?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+}
+
+
 
 export const creditTransactionService = async (
   userId: string,
@@ -153,4 +162,47 @@ export const debitTransactionService = async ({
   } finally {
     session.endSession();
   }
+};
+
+
+
+
+
+export const getTransactionHistoryService = async ({
+  userId,
+  type,
+  status,
+  page = 1,
+  limit = 20,
+}: TransactionHistoryParams) => {
+  const query: any = { userId };
+
+  if (type) {
+    query.type = type; // credit | debit
+  }
+
+  if (status) {
+    query.status = status; // pending | successful | failed | reversed
+  }
+
+  const skip = (page - 1) * limit;
+
+  const [transactions, total] = await Promise.all([
+    AccountTransaction.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    AccountTransaction.countDocuments(query),
+  ]);
+
+  return {
+    transactions,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
 };
