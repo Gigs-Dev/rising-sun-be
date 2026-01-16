@@ -9,7 +9,7 @@ import OtpService from "../services/OtpServices";
 import { OtpModel } from "../models/otp.model";
 import { privateKey } from "../config/env.config";
 import Referrals from "../models/referral.model";
-import { signAccessToken, signRefreshToken } from "../utils/jwt-util";
+import { signAccessToken } from "../utils/jwt-util";
 import Account from "../models/account.model";
 
 
@@ -138,7 +138,6 @@ export const signIn = async (req: Request, res: Response): Promise<any> => {
   };
 
   const accessToken = signAccessToken(tokenPayload, privateKey);
-  const refreshToken = signRefreshToken(tokenPayload, privateKey);
 
     res.cookie('token', accessToken, {
         path: '/',

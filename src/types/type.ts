@@ -54,3 +54,5 @@ export interface withdrawalType extends Document {
   flutterwave: any
 }
 
+
+

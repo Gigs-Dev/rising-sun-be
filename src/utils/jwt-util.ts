@@ -9,13 +9,11 @@ export const signAccessToken = (
   },
   privateKey: string
 ): string => {
-  return jwt.sign(payload, privateKey, { expiresIn: "12h" });
+  return jwt.sign(payload, privateKey, { expiresIn: "7d" });
 };
 
 
-
-
-export const signRefreshToken = (
+export const signAdminAccessToken = (
   payload: {
     id: string;
     role: string;
@@ -23,6 +21,20 @@ export const signRefreshToken = (
   },
   privateKey: string
 ): string => {
-  return jwt.sign(payload, privateKey, { expiresIn: "14d" });
+  return jwt.sign(payload, privateKey, { expiresIn: "15m" });
+};
+
+
+
+
+export const signAdminRefreshToken = (
+  payload: {
+    id: string;
+    role: string;
+    isBanned: boolean;
+  },
+  privateKey: string
+): string => {
+  return jwt.sign(payload, privateKey, { expiresIn: "4h" });
 };
 
