@@ -31,37 +31,38 @@ export const approveAndSendWithdrawal = async (
 };
 
 
-
 export const rejectWithdrawal = async (req: Request, res: Response) => {
-    const adminId = req.user.id;
-
+  try {
     const { reason } = req.body;
 
     const withdrawal = await AccountTransaction.findById(req.params.id);
     if (!withdrawal || withdrawal.status !== "pending") {
-        return res.status(400).json({ message: "Invalid withdrawal request" });
+      return sendResponse(res, 400, false, "Invalid withdrawal request");
     }
 
-    // Update withdrawal
     withdrawal.status = "rejected";
     withdrawal.rejectionReason = reason;
-    withdrawal.approvedOrRejectedBy = new Types.ObjectId(adminId);
+    // withdrawal.approvedOrRejectedBy = req.user.id;
 
-    await Promise.all([withdrawal.save(), withdrawal.populate('approvedOrRejectedBy', 'email')])
+    await withdrawal.save();
+    await withdrawal.populate("approvedOrRejectedBy", "email");
 
-    // await withdrawal.save();
-    // await withdrawal.populate('approvedOrRejectedBy', 'email');
-
-    // Unlock funds
     const account = await Account.findById(withdrawal.accountId);
     if (account) {
-        account.balance += withdrawal.amount;
-        await account.save();
+      account.balance += withdrawal.amount;
+      await account.save();
     }
 
-    return sendResponse(res, HttpStatus.OK, true, 'Withdrawal rejected', withdrawal)
-
-}
+    return sendResponse(res, HttpStatus.OK, true, "Withdrawal rejected", withdrawal);
+  } catch (error) {
+    return sendResponse(
+      res,
+      HttpStatus.INTERNAL_SERVER_ERROR,
+      false,
+      "Something went wrong"
+    );
+  }
+};
 
 
 
