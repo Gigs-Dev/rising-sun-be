@@ -7,7 +7,7 @@ import mongoose from "mongoose";
 import { hashValidator } from "../utils/func";
 import Withdrawal from "../models/admin/withdrawal";
 import { AppError } from "../utils/app-error";
-import { creditAccountService } from "../services/transaction.service";
+import { creditTransactionService, debitTransactionService } from "../services/transaction.service";
 
 
 export const creditTransaction = async (req: Request, res: Response) => {
@@ -24,7 +24,7 @@ export const creditTransaction = async (req: Request, res: Response) => {
       );
     }
 
-    const data = await creditAccountService(userId, Number(transaction_id));
+    const data = await creditTransactionService(userId, Number(transaction_id));
 
     return sendResponse(
       res,
@@ -44,62 +44,31 @@ export const creditTransaction = async (req: Request, res: Response) => {
 };
 
 
+
 export const debitTransaction = async (req: Request, res: Response) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+  try {
+    const data = await debitTransactionService({
+      userId: req.user.id,
+      ...req.body,
+    });
 
-    try {
-        const { amount, withdrawalPin, bankCode, bankName, accountNum } = req.body;
-        const userId = req.user.id;
+    return sendResponse(
+      res,
+      HttpStatus.OK,
+      true,
+      "Withdrawal application successful!",
+      data
+    );
+  } catch (error: any) {
+    return sendResponse(
+      res,
+      error.statusCode || HttpStatus.SERVICE_UNAVAILABLE,
+      false,
+      error.message
+    );
+  }
+};
 
-        if (!amount || !withdrawalPin || amount <= 0 || !bankCode || !bankName || !accountNum) {
-            throw new Error("Missing required fields");
-        }
-
-        // Fetch account
-        const account = await Account.findOne({ userId }).session(session);
-        if (!account) throw new Error("Account not found");
-
-        // Verify withdrawal PIN
-        const pinValid = await hashValidator(withdrawalPin, account.withdrawalPin);
-        if (!pinValid) throw new Error("Invalid withdrawal PIN");
-
-        if (account.balance < amount) throw new Error("Insufficient balance");
-
-        // Debit account
-        await Account.updateOne({ _id: account._id }, { $inc: { balance: -amount } }, { session });
-
-        await AccountTransaction.create(
-        [
-            {
-            userId,
-            accountId: account._id,
-            type: "debit",
-            amount,
-            status: "pending",
-            meta: {
-                bankName: bankName,
-                accountNumber: accountNum,
-                bankCode: bankCode
-            },
-            },
-        ],
-        { session }
-        );
-
-        await session.commitTransaction();
-
-        return sendResponse(res, HttpStatus.OK, true, 'Withdrawal successful', { balance: account.balance - amount })
-
-    } catch (error) {
-
-        await session.abortTransaction();
-        return sendResponse(res, HttpStatus.INTERNAL_SERVER_ERROR, false, error.message)
-    } finally {
-        session.endSession();
-    }
-
-}
 
 
 export const transactionHistory = async (req: Request, res: Response) => {
@@ -111,7 +80,7 @@ export const transactionHistory = async (req: Request, res: Response) => {
         const query: any = { userId };
 
         if (type) {
-            query.type = type; // credit | debit
+            query.type = type; // credit | debit | referral
         }
 
         const transactions = await AccountTransaction.find(query)

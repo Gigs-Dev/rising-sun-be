@@ -70,7 +70,7 @@ export const getAccount = async (
 };
 
 
-export const updateWithdrawalPin = async (req:Request, res: Response) => {
+export const verifyWithdrawalPin = async (req:Request, res: Response) => {
   const userId = req.user.id;
   const { withdrawalPin } = req.body;
 
@@ -81,13 +81,13 @@ export const updateWithdrawalPin = async (req:Request, res: Response) => {
   const account = await Account.findOne({ user: userId });
 
   if (!account) {
-    return sendResponse(res, 404, false, 'Account does not exist');
+    return sendResponse(res, 404, false, 'Invalid account or account does not exist');
   }
 
   const isMatch = await hashValidator(withdrawalPin, account.withdrawalPin);
 
   if (!isMatch) {
-    return sendResponse(res, 401, false, 'Old PIN is incorrect');
+    return sendResponse(res, 401, false, 'PIN is incorrect');
   }
 
   await account.save();
