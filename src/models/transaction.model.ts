@@ -36,6 +36,11 @@ const accountTransactionSchema = new Schema(
       type: String,
       default: "NGN",
     },
+    rejectionReason: String,
+    approvedOrRejectedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
     source: {
       type: String,
       enum: ["referral", "withdrawal", "deposit", "others"],
@@ -43,7 +48,7 @@ const accountTransactionSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["successful", "failed", "reversed", "pending"],
+      enum: ["successful", "failed", "reversed", "pending", 'rejected'],
       default: "pending",
       index: true,
     },

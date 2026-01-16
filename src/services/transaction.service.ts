@@ -13,25 +13,8 @@ import { HttpStatus } from "../constants/http-status";
 import Account from "../models/account.model";
 import { AccountTransaction } from "../models/transaction.model";
 import { hashValidator } from "../utils/func";
+import { DebitTransactionPayload, TransactionHistoryParams } from "../types/type";
 
-
-interface DebitTransactionPayload {
-  userId: string;
-  amount: number;
-  withdrawalPin: string;
-  bankCode: string;
-  bankName: string;
-  accountNum: string;
-}
-
-
-interface TransactionHistoryParams {
-  userId: string;
-  type?: string;
-  status?: string;
-  page?: number;
-  limit?: number;
-}
 
 
 

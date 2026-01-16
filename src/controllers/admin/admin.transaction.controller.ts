@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { Request, Response } from "express"
 import Withdrawal from "../../models/admin/withdrawal";
 import Account from "../../models/account.model";
@@ -5,6 +6,7 @@ import { sendResponse } from "../../utils/sendResponse";
 import { HttpStatus } from "../../constants/http-status";
 import { DebitTransactionService } from "../../services/withdrawal.service";
 import { getTransactionTotalsService } from "../../services/admins/admin.transaction.service";
+import { AccountTransaction } from "../../models/transaction.model";
 
 
 
@@ -31,24 +33,31 @@ export const approveAndSendWithdrawal = async (
 
 
 export const rejectWithdrawal = async (req: Request, res: Response) => {
+    const adminId = req.user.id;
+
     const { reason } = req.body;
 
-    const withdrawal = await Withdrawal.findById(req.params.id);
-    if (!withdrawal || withdrawal.status !== "PENDING") {
+    const withdrawal = await AccountTransaction.findById(req.params.id);
+    if (!withdrawal || withdrawal.status !== "pending") {
         return res.status(400).json({ message: "Invalid withdrawal request" });
     }
 
-    // 1️⃣ Update withdrawal
-    withdrawal.status = "REJECTED";
+    // Update withdrawal
+    withdrawal.status = "rejected";
     withdrawal.rejectionReason = reason;
-    await withdrawal.save();
+    withdrawal.approvedOrRejectedBy = new Types.ObjectId(adminId);
 
-    // 2️⃣ Unlock funds
-    // const account = await Account.findById(withdrawal.accountId);
-    // if (account) {
-    //     account.lockedBalance -= withdrawal.amount;
-    //     await account.save();
-    // }
+    await Promise.all([withdrawal.save(), withdrawal.populate('approvedOrRejectedBy', 'email')])
+
+    // await withdrawal.save();
+    // await withdrawal.populate('approvedOrRejectedBy', 'email');
+
+    // Unlock funds
+    const account = await Account.findById(withdrawal.accountId);
+    if (account) {
+        account.balance += withdrawal.amount;
+        await account.save();
+    }
 
     return sendResponse(res, HttpStatus.OK, true, 'Withdrawal rejected', withdrawal)
 

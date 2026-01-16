@@ -1,10 +1,10 @@
 // models/withdrawal.model.ts
 import { Schema, model } from "mongoose";
-import { withdrawalType } from "../../types/type";
 
 
 
-const withdrawalSchema = new Schema<withdrawalType>(
+
+const withdrawalSchema = new Schema(
   {
     userId: {
       type: Schema.Types.ObjectId,

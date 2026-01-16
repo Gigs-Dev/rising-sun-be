@@ -19,7 +19,7 @@ import { RefreshToken } from './controllers/refreshToken.controller';
 import accountRouter from './routes/account.route';
 import transactionRouter from './routes/transaction.route';
 import gameRouter from './routes/games.route';
-import adminRouter from './routes/admin/admin.route';
+import adminRouter from './routes/admin/admin.transaction.route';
 
 
 const app = express();
