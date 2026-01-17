@@ -1,12 +1,13 @@
 import { Types } from "mongoose";
 import { Request, Response } from "express"
-import Withdrawal from "../../models/admin/withdrawal";
 import Account from "../../models/account.model";
 import { sendResponse } from "../../utils/sendResponse";
 import { HttpStatus } from "../../constants/http-status";
 import { DebitTransactionService } from "../../services/withdrawal.service";
 import { getTransactionTotalsService } from "../../services/admins/admin.transaction.service";
 import { AccountTransaction } from "../../models/transaction.model";
+import { getAllTransactionsAdminService } from "../../services/admins/admin.transaction.service";
+import { getTransactionTotalsByStatusService } from '../../services/admins/admin.transaction.service'
 
 
 
@@ -30,24 +31,26 @@ export const approveAndSendWithdrawal = async (
 
 };
 
-
 export const rejectWithdrawal = async (req: Request, res: Response) => {
   try {
     const { reason } = req.body;
 
     const withdrawal = await AccountTransaction.findById(req.params.id);
-    if (!withdrawal || withdrawal.status !== "pending") {
+    
+    if (!withdrawal || withdrawal.status !== 'pending') {
       return sendResponse(res, 400, false, "Invalid withdrawal request");
     }
 
+
     withdrawal.status = "rejected";
     withdrawal.rejectionReason = reason;
-    // withdrawal.approvedOrRejectedBy = req.user.id;
+    withdrawal.approvedOrRejectedBy = new Types.ObjectId(req.user.id)
 
     await withdrawal.save();
     await withdrawal.populate("approvedOrRejectedBy", "email");
 
     const account = await Account.findById(withdrawal.accountId);
+    
     if (account) {
       account.balance += withdrawal.amount;
       await account.save();
@@ -55,6 +58,7 @@ export const rejectWithdrawal = async (req: Request, res: Response) => {
 
     return sendResponse(res, HttpStatus.OK, true, "Withdrawal rejected", withdrawal);
   } catch (error) {
+    console.error("ERROR:", error);
     return sendResponse(
       res,
       HttpStatus.INTERNAL_SERVER_ERROR,
@@ -64,45 +68,6 @@ export const rejectWithdrawal = async (req: Request, res: Response) => {
   }
 };
 
-
-
-export const getUserWithdrawalHistory = async (req: Request, res: Response) => {
-  try {
-    const userId = req.user.id;
-
-    // pagination
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-
-    const [withdrawals, total] = await Promise.all([
-      Withdrawal.find({ user: userId })
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-
-      Withdrawal.countDocuments({ user: userId }),
-    ]);
-
-    return sendResponse(res, HttpStatus.OK, true, "Withdrawal history fetched", {
-      data: withdrawals,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
-  } catch (error) {
-    return sendResponse(
-      res,
-      HttpStatus.INTERNAL_SERVER_ERROR,
-      false,
-      "Failed to fetch withdrawal history"
-    );
-  }
-};
 
 
 export const getTotalTransactions = async (
@@ -152,4 +117,71 @@ export const getTotalTransactions = async (
   }
 };
 
+export const getAllTransactionsAdmin = async (req: Request, res: Response) => {
+  try {
+    const {
+      status,
+      type,
+      userId,
+      reference,
+      startDate,
+      endDate,
+      page = 1,
+      limit = 20,
+    } = req.query;
 
+    const data = await getAllTransactionsAdminService({
+      status: status as string,
+      type: type as string,
+      userId: userId as string,
+      reference: reference as string,
+      startDate: startDate as string,
+      endDate: endDate as string,
+      page: Number(page),
+      limit: Number(limit),
+    });
+
+    return sendResponse(
+      res,
+      HttpStatus.OK,
+      true,
+      "Transactions fetched successfully",
+      data
+    );
+  } catch (error: any) {
+    return sendResponse(
+      res,
+      error.statusCode || HttpStatus.INTERNAL_SERVER_ERROR,
+      false,
+      error.message
+    );
+  }
+};
+
+
+export const getTotalsByStatus = async (req: Request, res: Response) => {
+  try {
+    const { type, startDate, endDate } = req.query;
+
+    const data = await getTransactionTotalsByStatusService({
+      type: type as string,
+      startDate: startDate as string,
+      endDate: endDate as string,
+    });
+
+    return sendResponse(
+      res,
+      HttpStatus.OK,
+      true,
+      "Transaction totals by status fetched successfully",
+      data
+    );
+  } catch (error: any) {
+    return sendResponse(
+      res,
+      error.statusCode || HttpStatus.INTERNAL_SERVER_ERROR,
+      false,
+      error.message
+    );
+  }
+};

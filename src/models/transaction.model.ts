@@ -39,6 +39,7 @@ const accountTransactionSchema = new Schema(
     rejectionReason: String,
     approvedOrRejectedBy: {
       type: Schema.Types.ObjectId,
+      // type: String
       ref: "User",
     },
     source: {
@@ -61,6 +62,11 @@ const accountTransactionSchema = new Schema(
 accountTransactionSchema.index({ userId: 1, createdAt: -1 });
 accountTransactionSchema.index({ userId: 1, status: 1 });
 accountTransactionSchema.index({ userId: 1, type: 1 });
+accountTransactionSchema.index({ status: 1 });
+accountTransactionSchema.index({ type: 1 });
+accountTransactionSchema.index({ reference: 1 }, { unique: true, sparse: true });
+accountTransactionSchema.index({ userId: 1, createdAt: -1 });
+
 
 export const AccountTransaction = model(
   "Transactions",

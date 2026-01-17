@@ -1,16 +1,16 @@
 import { Router } from "express";
-import { verifyAdminToken } from "../../middleware/verifyToken";
-import {  approveAndSendWithdrawal, rejectWithdrawal, getUserWithdrawalHistory } from "../../controllers/admin/admin.transaction.controller";
+import { verifyUserToken } from "../../middleware/verifyToken";
+import {  approveAndSendWithdrawal, rejectWithdrawal, getAllTransactionsAdmin} from "../../controllers/admin/admin.transaction.controller";
 import { authorizeAdmin } from "../../middleware/auth.middleware";
 
 
 const adminRouter = Router()
 
-adminRouter.patch('/transactions/:id/approve', verifyAdminToken, approveAndSendWithdrawal);
+adminRouter.patch('/transactions/:id/approve', verifyUserToken, approveAndSendWithdrawal);
 
-adminRouter.patch('/transactions/:id/reject', verifyAdminToken, rejectWithdrawal)
+adminRouter.patch('/transactions/:id/reject', verifyUserToken, authorizeAdmin, rejectWithdrawal)
 
-adminRouter.get('/transactions/:userId', verifyAdminToken, authorizeAdmin, getUserWithdrawalHistory);
+adminRouter.get('/transactions', verifyUserToken, authorizeAdmin, getAllTransactionsAdmin);
 
 
 export default adminRouter;

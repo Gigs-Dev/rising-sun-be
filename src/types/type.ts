@@ -56,3 +56,14 @@ export interface TransactionHistoryParams {
   limit?: number;
 }
 
+
+export interface AdminTransactionQuery {
+  status?: string;
+  type?: string;
+  userId?: string;
+  reference?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
+}
