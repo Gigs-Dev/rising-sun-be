@@ -1,4 +1,4 @@
-import { Document, StringExpressionOperatorReturningArray } from "mongoose";
+import { Document } from "mongoose";
 
 export interface UserType  extends Document {
     fullName: string;
@@ -37,22 +37,33 @@ export interface SendOtpResult {
   message: string;
 }
 
-export interface withdrawalType extends Document {
-  userId: any;
-  accountId: any;
+
+export interface DebitTransactionPayload {
+  userId: string;
   amount: number;
-  bankSnapshot: {
-      acctNum: String;
-      bankName: String;
-      bankCode: Number;
-      accountNumber: Number;
-  };
-  status: string;
-  reference: string;
-  approvedBy: any;
-  rejectionReason: string;
-  flutterwave: any
+  withdrawalPin: string;
+  bankCode: string;
+  bankName: string;
+  accountNum: string;
 }
 
 
+export interface TransactionHistoryParams {
+  userId: string;
+  type?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+}
 
+
+export interface AdminTransactionQuery {
+  status?: string;
+  type?: string;
+  userId?: string;
+  reference?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
+}

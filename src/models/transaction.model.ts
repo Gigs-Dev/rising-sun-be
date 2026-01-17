@@ -36,6 +36,12 @@ const accountTransactionSchema = new Schema(
       type: String,
       default: "NGN",
     },
+    rejectionReason: String,
+    approvedOrRejectedBy: {
+      type: Schema.Types.ObjectId,
+      // type: String
+      ref: "User",
+    },
     source: {
       type: String,
       enum: ["referral", "withdrawal", "deposit", "others"],
@@ -43,7 +49,7 @@ const accountTransactionSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["successful", "failed", "reversed", "pending"],
+      enum: ["successful", "failed", "reversed", "pending", 'rejected'],
       default: "pending",
       index: true,
     },
@@ -56,6 +62,11 @@ const accountTransactionSchema = new Schema(
 accountTransactionSchema.index({ userId: 1, createdAt: -1 });
 accountTransactionSchema.index({ userId: 1, status: 1 });
 accountTransactionSchema.index({ userId: 1, type: 1 });
+accountTransactionSchema.index({ status: 1 });
+accountTransactionSchema.index({ type: 1 });
+accountTransactionSchema.index({ reference: 1 }, { unique: true, sparse: true });
+accountTransactionSchema.index({ userId: 1, createdAt: -1 });
+
 
 export const AccountTransaction = model(
   "Transactions",
