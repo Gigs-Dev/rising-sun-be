@@ -20,6 +20,7 @@ import accountRouter from './routes/account.route';
 import transactionRouter from './routes/transaction.route';
 import gameRouter from './routes/games.route';
 import adminRouter from './routes/admin/admin.transaction.route';
+import adminUsersRoute from './routes/admin/admin.users.route';
 
 
 const app = express();
@@ -50,6 +51,7 @@ app.use('/api/v1/accounts', accountRouter);
 app.use('/api/v1/transactions', transactionRouter);
 app.use('/api/v1/games', gameRouter);
 app.use('/api/v1/admins', adminRouter);
+app.use('/api/v1/admins', adminUsersRoute);
 
 
 

@@ -2,7 +2,7 @@
 node_modules
 
 
-# Environment vairables
+# Environments
 .env
 
 .env.local
@@ -16,4 +16,7 @@ node_modules
 
 # Files
 dist
+
+# Settings
+.vscode
 
