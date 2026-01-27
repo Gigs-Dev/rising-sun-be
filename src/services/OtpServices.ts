@@ -1,10 +1,9 @@
-import { USER_EMAIL, RESEND_API_KEY } from "../config/env.config";
 import { OtpModel } from "../models/otp.model";
 import { forgotPasswordOTPBody, registrationOTPBody } from "../templates/mailTemplate";
 import { SendOtpResult } from "../types/type";
 import { hmacHash } from "../utils/func";
-import { Resend } from 'resend';
-import {ResendEmail, transport} from "./sendEmail";
+
+import { transport } from "./sendEmail";
 
 type OtpType = "signup" | "forgotPassword";
 
@@ -48,16 +47,6 @@ class OtpService {
     if (info.accepted[0] !== email) {
       return { success: false, message: "Failed to send OTP email" };
     }
-
-
-    // const resend = new Resend(RESEND_API_KEY);
-
-    // resend.emails.send({
-    //   from: 'officials@risebet.com',
-    //   to: [email],
-    //   subject: subject,
-    //   html: html
-    // });
 
     // Save OTP to DB
     await OtpModel.create({
