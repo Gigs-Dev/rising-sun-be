@@ -213,7 +213,7 @@ export const verfiyForgotPassword = async (req:Request, res:Response): Promise<a
         throw new AppError("User not found", HttpStatus.NOT_FOUND);
     }
 
-    user.password = await doHash(password, 10);
+    user.password = password
 
     await Promise.all([user.save(), OtpModel.deleteMany({ email })])
 

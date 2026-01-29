@@ -52,19 +52,19 @@ const standardBody = (title: string, name: string, body: string, otp: string) =>
       .otp {
         display: flex;
         justify-content: center;
-        margin: 20px auto;
+        margin: auto;
       }
 
       .otp span {
         display: inline-block;
-        background-color: #892cdc0d;
+        background-color: #2c2fdc0d;
         padding: 15px 20px;
         margin: 0 5px;
         font-size: 1.6rem;
         font-weight: bold;
         border-radius: 4px;
-        color: #333333;
-        border: 1px solid #ddd;
+        color: #999;
+        border: 1px solid #4e4141;
       }
 
       .socials {
@@ -77,7 +77,7 @@ const standardBody = (title: string, name: string, body: string, otp: string) =>
         width: 36px;
         height: 36px;
         margin: 0 5px;
-        background-color: #6922d1;
+        background-color: #ee4410;
         border-radius: 50%;
         text-align: center;
         line-height: 36px;
@@ -98,13 +98,13 @@ const standardBody = (title: string, name: string, body: string, otp: string) =>
       }
 
       .footer a {
-        color: #6922d1;
+        color: #ee4410;
         text-decoration: none;
         margin: 0 5px;
       }
 
       .banicoop-mail {
-        color: #6922d1;
+        color: #ee4410;
         text-decoration: none;
         font-weight: bold;
       }
@@ -124,7 +124,7 @@ const standardBody = (title: string, name: string, body: string, otp: string) =>
       <p style="text-align:center;">OTP will expire in <b>5 minutes</b>.</p>
 
       <p>Best Regards,<br>
-        <a class="banicoop-mail" href="mailto:infobanicoop@gmail.com">RisBet</a>
+        <a class="banicoop-mail" href="mailto:official.risebet@gmail.com">RiseBet</a>
       </p>
 
       <hr style="border:none;border-top:1px solid #eee;margin:20px 0;" />
@@ -139,13 +139,13 @@ const standardBody = (title: string, name: string, body: string, otp: string) =>
       </div>
 
       <div class="footer">
-        &copy; ${new Date().getFullYear()} RisBet. All rights reserved.<br>
-        You are receiving this mail because you registered on Banicoop. If this wasn't you, you can
-        <a href="https://banicoop-server-7cas.onrender.com/auth/unsubscribe" target="_blank" rel="noopener noreferrer">unsubscribe</a> anytime.
+        &copy; ${new Date().getFullYear()} RiseBet. All rights reserved.<br>
+        You are receiving this mail because you registered on RiseBet. If this wasn't you, you can
+        <a href="#" target="_blank" rel="noopener noreferrer">unsubscribe</a> anytime.
         <br><br>
-        <a href="https://www.banicoopng.com/" target="_blank" rel="noopener noreferrer">Privacy Policy</a> |
-        <a href="https://www.banicoopng.com/" target="_blank" rel="noopener noreferrer">Terms of Service</a> |
-        <a href="https://www.banicoopng.com/" target="_blank" rel="noopener noreferrer">Help Center</a>
+        <a href="#" target="_blank" rel="noopener noreferrer">Privacy Policy</a> |
+        <a href="#" target="_blank" rel="noopener noreferrer">Terms of Service</a> |
+        <a href="#" target="_blank" rel="noopener noreferrer">Help Center</a>
       </div>
     </div>
   </body>
@@ -154,9 +154,9 @@ const standardBody = (title: string, name: string, body: string, otp: string) =>
 
 export const registrationOTPBody = (email: string, otp: string) => {
   return standardBody(
-    "Account Verification Mail",
+    "RiseBet Account Verification Mail",
     email,
-    `<p>Please use the OTP below to verify your email address for RisBet Account creation, or ignore if you did not initiate this process</p>`,
+    `<p>Please use the OTP below to verify your email address for RiseBet Account creation, or ignore if you did not initiate this process</p>`,
     otp
   );
 };
@@ -164,13 +164,11 @@ export const registrationOTPBody = (email: string, otp: string) => {
 
 export const forgotPasswordOTPBody = (email: string, otp: string) => {
   return standardBody(
-    "Reset Password Verification Mail",
+    "RiseBet Account Verification Mail",
     email,
-    `<p>Please use the OTP below to verify your email address for RisBet, or ignore if you did not initiate this process</p>`,
+    `<p>Please use the OTP below to verify your email address for RiseBet. You can this email, or contact our support team if did not initiate this process</p>`,
     otp
   );
 };
 
 
-// / <img class="logo" src="https://res.cloudinary.com/daiiyjdvo/image/upload/v1720390793/logo_hpmxyz.png" alt="Banicoop Logo" />
-// <img class="banner" src="https://res.cloudinary.com/daiiyjdvo/image/upload/v1720390794/flyer_wyngwe.png" alt="Banicoop Flyer" />
