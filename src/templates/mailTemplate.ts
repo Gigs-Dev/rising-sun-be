@@ -130,10 +130,10 @@ const standardBody = (title: string, name: string, body: string, otp: string) =>
       <hr style="border:none;border-top:1px solid #eee;margin:20px 0;" />
 
       <div class="socials">
-        <a href="https://www.instagram.com/banicoop_ng?igsh=aGJvZ2IyY3ZncXBr&utm_source=qr" target="_blank" rel="noopener noreferrer">
-          <img src="https://app-rsrc.getbee.io/public/resources/social-networks-icon-sets/t-only-logo-white/instagram@2x.png" alt="Instagram" />
+        <a href="https://www.tiktok.com/@officialrisebet?_r=1&_t=ZS-92Y2F8wBRAm" target="_blank" rel="noopener noreferrer">
+          <img src="https://www.streamlinehq.com/icons/download/tiktok--15614" alt="TikTok" />
         </a>
-        <a href="https://www.facebook.com/profile.php?id=61553631940908&mibextid=ZbWKwL" target="_blank" rel="noopener noreferrer">
+        <a href="https://www.facebook.com/profile.php?id=61586299203954" target="_blank" rel="noopener noreferrer">
           <img src="https://app-rsrc.getbee.io/public/resources/social-networks-icon-sets/t-only-logo-white/facebook@2x.png" alt="Facebook" />
         </a>
       </div>
