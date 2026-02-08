@@ -33,24 +33,21 @@ export const approveAndSendWithdrawal = async (
 
 export const rejectWithdrawal = async (req: Request, res: Response) => {
   try {
-    const { reason } = req.body;
+    // const { reason } = req.body;
 
     const withdrawal = await AccountTransaction.findById(req.params.id);
-    
-    if (!withdrawal || withdrawal.status !== 'pending') {
+    if (!withdrawal || withdrawal.status !== "pending") {
       return sendResponse(res, 400, false, "Invalid withdrawal request");
     }
 
-
     withdrawal.status = "rejected";
-    withdrawal.rejectionReason = reason;
-    withdrawal.approvedOrRejectedBy = new Types.ObjectId(req.user.id)
+    // withdrawal.rejectionReason = reason;
+    withdrawal.approvedOrRejectedBy = new Types.ObjectId(req.user.id);
 
     await withdrawal.save();
     await withdrawal.populate("approvedOrRejectedBy", "email");
 
     const account = await Account.findById(withdrawal.accountId);
-    
     if (account) {
       account.balance += withdrawal.amount;
       await account.save();
@@ -58,7 +55,6 @@ export const rejectWithdrawal = async (req: Request, res: Response) => {
 
     return sendResponse(res, HttpStatus.OK, true, "Withdrawal rejected", withdrawal);
   } catch (error) {
-    console.error("ERROR:", error);
     return sendResponse(
       res,
       HttpStatus.INTERNAL_SERVER_ERROR,

@@ -7,7 +7,7 @@ import { banUser, getUsers, unBanUser } from "../../controllers/admin/admin.user
 const adminUsersRoute = Router();
 
 
-adminUsersRoute.patch('/users', verifyUserToken, authorizeAdmin, getUsers)
+adminUsersRoute.get('/users', verifyUserToken, authorizeAdmin, getUsers)
 
 adminUsersRoute.patch('/users/:id/ban', verifyUserToken, authorizeAdmin, banUser);
 
