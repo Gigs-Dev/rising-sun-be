@@ -6,6 +6,7 @@ import User from "../models/user.model";
 import { AppError } from "../utils/app-error";
 import { HttpStatus } from "../constants/http-status";
 import ReferralService from "./ReferralService";
+import Account from "../models/account.model";
 
 
 
@@ -64,10 +65,10 @@ export class AuthServices {
       phoneNumber,
       password,
       referringUserCode,
-      verificationId, // 👈 required
+      verificationId,
     } = data;
 
-    /* -------------------- 0️⃣ VERIFY OTP SESSION -------------------- */
+    /* -------------------- VERIFY OTP SESSION -------------------- */
     const otpRecord = await OtpModel.findOne({
       email: email.toLowerCase(),
       verificationId,
@@ -91,7 +92,7 @@ export class AuthServices {
       );
     }
 
-    /* -------------------- 1️⃣ CHECK EXISTING USER -------------------- */
+    /* -------------------- CHECK EXISTING USER -------------------- */
     const existingUser = await User.findOne({ email }).session(session);
     if (existingUser) {
       throw new AppError(
@@ -100,29 +101,38 @@ export class AuthServices {
       );
     }
 
-    /* -------------------- 2️⃣ CREATE USER -------------------- */
+    /* -------------------- CREATE USER -------------------- */
     const user = new User({
       fullName,
       email,
       phoneNumber,
       password,
     });
+    
+    const account = new Account({
+      userId: user._id,
+    });
 
-    await Promise.all([
+     const [, , referralProfile] = await Promise.all([
       user.save({ session }),
+      account.save({ session }),
       ReferralService.createReferralProfile(user._id, email, session),
     ]);
 
-    /* -------------------- 3️⃣ HANDLE REFERRAL -------------------- */
-    if (referringUserCode && referringUserCode !== email) {
-      await ReferralService.rewardReferrer(
-        referringUserCode,
-        email,
+    /* -------------------- HANDLE REFERRAL -------------------- */
+    if (referringUserCode && referralProfile) {
+      const rewarded = await ReferralService.rewardReferrer(
+        referringUserCode.toUpperCase(),
+        referralProfile.referralCode,
         session
       );
+
+      if (!rewarded) {
+        throw new AppError("Invalid referral code", HttpStatus.BAD_REQUEST);
+      }
     }
 
-    /* -------------------- 4️⃣ INVALIDATE OTP (SINGLE USE) -------------------- */
+    /* -------------------- INVALIDATE OTP (SINGLE USE) -------------------- */
     await OtpModel.deleteOne({ _id: otpRecord._id }).session(session);
 
     await session.commitTransaction();
