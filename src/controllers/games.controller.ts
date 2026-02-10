@@ -5,21 +5,42 @@ import { HttpStatus } from '../constants/http-status'
 
 
 export const gameWinners = async (req: Request, res: Response) => {
-    const userId = req.user.id
+  const userId = req.user.id;
 
-    if(!userId) return sendResponse(res, HttpStatus.FORBIDDEN, false, 'Invalid or forbidden request!', null);
+  if (!userId) {
+    return sendResponse(
+      res,
+      HttpStatus.FORBIDDEN,
+      false,
+      'Invalid or forbidden request!',
+      null
+    );
+  }
 
-    const { amount, gameType } = req.body
-    const game = new Games({
-        userId,
-        amount,
-        game: gameType,
-    })
+  const { amount, gameType } = req.body;
 
-    await game.save();
+  // Ensure amount is a number and greater than 5000
+  if (typeof amount !== 'number' || amount < 5000) {
+    return;
+  }
 
-    return sendResponse(res, HttpStatus.OK, true, 'Game created successfully!', game)
-}
+  const game = new Games({
+    userId,
+    amount,
+    game: gameType,
+  });
+
+  await game.save();
+
+  return sendResponse(
+    res,
+    HttpStatus.OK,
+    true,
+    'Game created successfully!',
+    game
+  );
+};
+
 
 
 export const getLatestWinners = async (req: Request, res: Response) => {

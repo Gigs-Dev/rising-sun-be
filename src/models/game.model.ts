@@ -9,6 +9,7 @@ const gameSchema = new Schema({
     },
     amount: {
         type: Number,
+        min: 5000,
         required: true
     },
     game: {

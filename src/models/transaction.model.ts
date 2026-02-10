@@ -42,7 +42,7 @@ const accountTransactionSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["successful", "failed", "reversed", "pending", "rejected"],
+      enum: ["successful", "failed", "reversed", "pending", "rejected", 'processing'],
       default: "pending",
     },
     meta: Schema.Types.Mixed,

@@ -15,21 +15,24 @@ export const approveAndSendWithdrawal = async (
   req: Request,
   res: Response
 ) => {
-
-   try {
+  try {
     const result = await DebitTransactionService.approveAndSend(
       req.params.id,
       req.user.id
     );
 
-    console.log(result)
-
-    // return sendResponse(res, 200, true, result.message, result.);
+    return sendResponse(
+      res,
+      200,
+      true,
+      'Withdrawal processed successfully',
+      result
+    );
   } catch (error: any) {
-    return sendResponse(res, 400, false, error.message);
+    return sendResponse(res, error.statusCode || 400, false, error.message);
   }
-
 };
+
 
 export const rejectWithdrawal = async (req: Request, res: Response) => {
   try {
