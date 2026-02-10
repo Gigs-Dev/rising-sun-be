@@ -12,15 +12,14 @@ class ReferralService {
     email: string,
     session: mongoose.ClientSession
   ) {
-    return Referrals.create(
-      [
-        {
-          userId,
-          referralCode: (await generateUniqueReferralCode(email)).toUpperCase(),
-        },
-      ],
+    const referralCode = (await generateUniqueReferralCode(email)).toUpperCase();
+
+    const [referral] = await Referrals.create(
+      [{ userId, referralCode }],
       { session }
     );
+
+    return referral;
   }
 
   /**
@@ -28,11 +27,11 @@ class ReferralService {
    */
   static async rewardReferrer(
     referringUserCode: string,
-    newUserEmail: string,
+    newUserReferralCode: string,
     session: mongoose.ClientSession
   ) {
     const referrer = await Referrals.findOne(
-      { referralCode: referringUserCode.toLowerCase() },
+      { referralCode: referringUserCode.toUpperCase() },
       null,
       { session }
     );
@@ -40,14 +39,18 @@ class ReferralService {
     if (!referrer) return null;
 
     return Referrals.updateOne(
-      { _id: referrer._id },
       {
-        $addToSet: { referrals: newUserEmail.toLowerCase() },
-        $inc: { referralAmt: 500 }, 
+        _id: referrer._id,
+        referrals: { $ne: newUserReferralCode.toUpperCase() }, // prevent double reward
+      },
+      {
+        $addToSet: { referrals: newUserReferralCode.toUpperCase() },
+        $inc: { referralAmt: 500 },
       },
       { session }
     );
   }
+
 }
 
 export default ReferralService;

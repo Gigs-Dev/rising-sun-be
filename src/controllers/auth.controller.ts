@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import User from "../models/user.model";
 import { sendResponse } from "../utils/sendResponse";
-import { doHash, generateVerificationId, hashValidator } from "../utils/func";
+import { generateVerificationId, hashValidator } from "../utils/func";
 import { AppError } from "../utils/app-error";
 import { HttpStatus } from "../constants/http-status";
 import { AuthServices } from "../services/AuthServices";
@@ -72,34 +72,42 @@ export const verifySignUpOTP = async (
 
 
 export const createUser = async (req: Request, res: Response): Promise<any> => {
+  const {
+    fullName,
+    email,
+    phoneNumber,
+    password,
+    verificationId,
+    referringUserCode,
+  } = req.body;
 
-    const { fullName, email, phoneNumber, password, verificationId, referringUserCode } = req.body;
+  if (!email || !fullName || !phoneNumber || !password || !verificationId) {
+    throw new AppError(
+      "Missing required fields",
+      HttpStatus.UNPROCESSABLE_ENTITY
+    );
+  }
 
-    if (referringUserCode === email) {
-        throw new AppError("You cannot refer yourself", HttpStatus.BAD_REQUEST);
+  const user = await AuthServices.verifySignupAndCreateUser({
+    fullName,
+    email,
+    phoneNumber,
+    password,
+    verificationId,
+    referringUserCode,
+  });
+
+  return sendResponse(
+    res,
+    HttpStatus.CREATED,
+    true,
+    "Sign up successfully!",
+    {
+      userId: user._id,
     }
+  );
+};
 
-    if (!email || !fullName || !phoneNumber || !password || !verificationId) {
-        throw new AppError( "Missing required fields", HttpStatus.UNPROCESSABLE_ENTITY );
-    }
-
-    const userExists = await User.findOne({email})
-
-    if(userExists){
-      return sendResponse(res, HttpStatus.CONFLICT_REQUEST, false, 'User already exist')
-    }
-
-    const user = await AuthServices.verifySignupAndCreateUser({ fullName, email, phoneNumber, password, referringUserCode, verificationId });
-
-    const userAcct = new Account({
-        userId: user._id
-    })
-
-    await Promise.all([user.save(), userAcct.save()]);
-
-    return sendResponse(res, HttpStatus.CREATED, true, 'Sign up successfully!', null );
-
-}
 
 
 // sign-in
