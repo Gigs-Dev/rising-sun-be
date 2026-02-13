@@ -148,6 +148,7 @@ export const flutterwaveWebhook = async (req: Request, res: Response) => {
       .json({ success: true, message: 'Unhandled event type' });
 
   } catch (error: any) {
+    console.log('ERROR', error)
     await session.abortTransaction();
     return res
       .status(500)
