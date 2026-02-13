@@ -26,6 +26,14 @@ import webhookRouter from './routes/webhook';
 
 const app = express();
 
+app.use(
+  '/webhooks/flutterwave',
+  express.raw({ type: 'application/json' })
+);
+
+app.use('/webhooks', webhookRouter);
+// app.use('/webhooks/flutterwave', ipWhitelistMiddleware);
+
 // middlewares
 app.use(cookieParser())
 app.use(express.json())
@@ -45,7 +53,6 @@ app.use(helmet())
 // ============
 // Routes Usage
 // ============
-app.use('/webhooks', webhookRouter)
 app.use('/api/auth/refreshToken', RefreshToken)
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
