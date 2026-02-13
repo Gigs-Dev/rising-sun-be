@@ -19,7 +19,7 @@ export const creditTransaction = async (req: Request, res: Response) => {
       );
     }
 
-    const data = await creditTransactionService(userId, Number(transaction_id));
+    const data = await creditTransactionService(userId, transaction_id);
 
     return sendResponse(
       res,
