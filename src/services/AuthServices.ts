@@ -113,11 +113,16 @@ export class AuthServices {
       userId: user._id,
     });
 
-     const [, , referralProfile] = await Promise.all([
-      user.save({ session }),
-      account.save({ session }),
-      ReferralService.createReferralProfile(user._id, email, session),
-    ]);
+    //  const [, , referralProfile] = await Promise.all([
+    //   user.save({ session }),
+    //   account.save({ session }),
+    //   ReferralService.createReferralProfile(user._id, email, session),
+    // ]);
+
+    await user.save({ session });
+    await account.save({ session });
+    const referralProfile = await ReferralService.createReferralProfile(user._id, email, session);
+
 
     /* -------------------- HANDLE REFERRAL -------------------- */
     if (referringUserCode && referralProfile) {

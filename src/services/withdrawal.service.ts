@@ -28,7 +28,7 @@ export class DebitTransactionService {
 
       const transaction = await AccountTransaction.findOneAndUpdate(
         { _id: transactionId, status: 'pending' },
-        // { $set: { status: 'processing' } },
+        { $set: { status: 'processing' } },
         { new: true, session }
       );
 
@@ -48,7 +48,7 @@ export class DebitTransactionService {
         account_bank: transaction.meta.bankCode,
         account_number: transaction.meta.accountNum,
         amount: transaction.amount,
-        currency: 'NGN',
+        currency: transaction.currency,
         narration: 'User withdrawal',
         reference: transaction.reference, // 🔒 immutable internal reference
         callback_url: `${CALLBACK_URL}requests`,
