@@ -1,6 +1,6 @@
 import { Types, startSession } from 'mongoose';
 import { AccountTransaction } from '../models/transaction.model';
-import { API_URL, FLW_PUBLIC_KEY, FLW_SECRET_KEY } from '../config/env.config';
+import { CALLBACK_URL, FLW_PUBLIC_KEY, FLW_SECRET_KEY } from '../config/env.config';
 import { AppError } from '../utils/app-error';
 import { HttpStatus } from '../constants/http-status';
 
@@ -28,7 +28,7 @@ export class DebitTransactionService {
 
       const transaction = await AccountTransaction.findOneAndUpdate(
         { _id: transactionId, status: 'pending' },
-        { $set: { status: 'processing' } },
+        // { $set: { status: 'processing' } },
         { new: true, session }
       );
 
@@ -46,12 +46,12 @@ export class DebitTransactionService {
       /* -------------------- 2️⃣ Call Flutterwave -------------------- */
       const flwResponse = await flw.Transfer.initiate({
         account_bank: transaction.meta.bankCode,
-        account_number: transaction.meta.acctNum,
+        account_number: transaction.meta.accountNum,
         amount: transaction.amount,
         currency: 'NGN',
         narration: 'User withdrawal',
         reference: transaction.reference, // 🔒 immutable internal reference
-        // callback_url: `${API_URL}/webhooks/flutterwave`,
+        callback_url: `${CALLBACK_URL}requests`,
       });
 
       /* -------------------- 3️⃣ Flutterwave Accepted -------------------- */

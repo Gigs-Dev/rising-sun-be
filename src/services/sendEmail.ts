@@ -5,7 +5,7 @@ import { USER_EMAIL, USER_PASSWORD } from '../config/env.config';
 
 export const transport = createTransport({
     host: "smtp.gmail.com",
-    port: 467,
+    port: 587,
     secure: true,
     service: 'gmail',
     auth: {
@@ -15,6 +15,9 @@ export const transport = createTransport({
     connectionTimeout: 10_000,
     greetingTimeout: 10_000,
     socketTimeout: 10_000,
+    tls: {
+        rejectUnauthorized: false,
+  },
 })
 
 
