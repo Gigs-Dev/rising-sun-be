@@ -21,6 +21,7 @@ import transactionRouter from './routes/transaction.route';
 import gameRouter from './routes/games.route';
 import adminRouter from './routes/admin/admin.transaction.route';
 import adminUsersRoute from './routes/admin/admin.users.route';
+import webhookRouter from './routes/webhook';
 
 
 const app = express();
@@ -44,6 +45,7 @@ app.use(helmet())
 // ============
 // Routes Usage
 // ============
+app.use('/webhooks', webhookRouter)
 app.use('/api/auth/refreshToken', RefreshToken)
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
