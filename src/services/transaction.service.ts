@@ -21,64 +21,69 @@ import { DebitTransactionPayload, HandleReferralFirstDepositParams, TransactionH
 
 export const creditTransactionService = async (
   userId: string,
-  transactionId: number
+  transactionId: string
 ) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
+    /* -------------------- 1️⃣ Verify Payment -------------------- */
     const data = await verifyFlutterwaveTransaction(transactionId);
 
     if (
-      data.status !== "successful" ||
+      data.status !== 'successful' ||
       data.amount <= 0 ||
       !data.tx_ref
     ) {
-      throw new AppError("Invalid or unsuccessful transaction", HttpStatus.BAD_REQUEST);
+      throw new AppError(
+        'Invalid or unsuccessful transaction',
+        HttpStatus.BAD_REQUEST
+      );
     }
 
-    const previousCredits = await AccountTransaction.countDocuments({
-      userId,
-      type: "credit",
-    }).session(session);
+    /* -------------------- 2️⃣ Idempotency Check (FIRST) -------------------- */
+    const alreadyProcessed = await AccountTransaction.exists(
+      { reference: data.tx_ref }
+    ).session(session);
 
-    const isFirstCredit = previousCredits === 0;
-
-    if (isFirstCredit) {
-      await handleReferralFirstDeposit({
-        referredUserId: userId,
-        amount: 500,
-        currency: data.currency,
-        reference: data.tx_ref,
-        session,
-      });
+    if (alreadyProcessed) {
+      throw new AppError(
+        'Transaction already processed',
+        HttpStatus.CONFLICT_REQUEST
+      );
     }
 
-
-    // const alreadyProcessed = await transactionExists(data.tx_ref);
-    // if (alreadyProcessed) {
-    //   throw new AppError("Transaction already processed", HttpStatus.CONFLICT_REQUEST);
-    // }
-
+    /* -------------------- 3️⃣ Fetch Account -------------------- */
     const account = await findAccountByUserId(userId, session);
     if (!account) {
-      throw new AppError("Account not found", HttpStatus.NOT_FOUND);
+      throw new AppError('Account not found', HttpStatus.NOT_FOUND);
     }
 
-    await incrementAccountBalance((account._id).toString(), data.amount, session);
+    /* -------------------- 4️⃣ First Deposit Check -------------------- */
+    const hasPreviousCredit = await AccountTransaction.exists(
+      { userId, type: 'credit' }
+    ).session(session);
 
+    /* -------------------- 5️⃣ Credit Account -------------------- */
+    await incrementAccountBalance(
+      account._id.toString(),
+      data.amount,
+      session
+    );
+
+    /* -------------------- 6️⃣ Create Transaction -------------------- */
     await createAccountTransaction(
       {
         userId,
         accountId: account._id,
-        type: "credit",
+        type: 'credit',
         amount: data.amount,
-        source: "deposit",
-        status: data.status,
-        createdAt: data.created_at,
-        payment_type: data.payment_type,
+        source: 'deposit',
+        status: 'successful',
         reference: data.tx_ref,
         currency: data.currency,
+        payment_type: data.payment_type,
+        createdAt: data.created_at,
         meta: {
           bankName: data.meta?.bankname,
           originatorName: data.meta?.originatorname,
@@ -87,8 +92,20 @@ export const creditTransactionService = async (
       session
     );
 
+    /* -------------------- 7️⃣ Referral Bonus -------------------- */
+    if (!hasPreviousCredit) {
+      await handleReferralFirstDeposit({
+        referredUserId: userId,
+        amount: 500,
+        currency: data.currency,
+        reference: `ref-${data.tx_ref}`,
+        session,
+      });
+    }
+
     await session.commitTransaction();
     return data;
+
   } catch (error) {
     await session.abortTransaction();
     throw error;
