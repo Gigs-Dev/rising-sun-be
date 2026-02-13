@@ -11,9 +11,10 @@ import {
 import { AppError } from "../utils/app-error";
 import { HttpStatus } from "../constants/http-status";
 import Account from "../models/account.model";
+import Referrals from "../models/referral.model";
 import { AccountTransaction } from "../models/transaction.model";
 import { hashValidator } from "../utils/func";
-import { DebitTransactionPayload, TransactionHistoryParams } from "../types/type";
+import { DebitTransactionPayload, HandleReferralFirstDepositParams, TransactionHistoryParams } from "../types/type";
 
 
 
@@ -31,16 +32,33 @@ export const creditTransactionService = async (
     if (
       data.status !== "successful" ||
       data.amount <= 0 ||
-      data.currency !== "NGN" ||
       !data.tx_ref
     ) {
       throw new AppError("Invalid or unsuccessful transaction", HttpStatus.BAD_REQUEST);
     }
 
-    const alreadyProcessed = await transactionExists(data.tx_ref);
-    if (alreadyProcessed) {
-      throw new AppError("Transaction already processed", HttpStatus.CONFLICT_REQUEST);
+    const previousCredits = await AccountTransaction.countDocuments({
+      userId,
+      type: "credit",
+    }).session(session);
+
+    const isFirstCredit = previousCredits === 0;
+
+    if (isFirstCredit) {
+      await handleReferralFirstDeposit({
+        referredUserId: userId,
+        amount: 500,
+        currency: data.currency,
+        reference: data.tx_ref,
+        session,
+      });
     }
+
+
+    // const alreadyProcessed = await transactionExists(data.tx_ref);
+    // if (alreadyProcessed) {
+    //   throw new AppError("Transaction already processed", HttpStatus.CONFLICT_REQUEST);
+    // }
 
     const account = await findAccountByUserId(userId, session);
     if (!account) {
@@ -147,6 +165,96 @@ export const debitTransactionService = async ({
   }
 };
 
+
+
+
+export const handleReferralFirstDeposit = async ({
+  referredUserId,
+  amount,
+  currency,
+  reference,
+  session,
+}: HandleReferralFirstDepositParams) => {
+  /**
+   * STEP 1: Get referral profile of the referred user
+   * (This tells us the referral code they own)
+   */
+  const referredProfile = await Referrals.findOne({
+    userId: referredUserId,
+  }).session(session);
+
+  // User was not referred by anyone
+  if (!referredProfile) return;
+
+  /**
+   * STEP 2: Find the referrer who owns this referral
+   * AND has not been rewarded yet
+   */
+  const referrerProfile = await Referrals.findOne({
+    referrals: referredProfile.referralCode,
+    firstDepositRewarded: false,
+  }).session(session);
+
+  // Either:
+  // - referral already rewarded
+  // - referral relationship not found
+  if (!referrerProfile) return;
+
+  /**
+   * STEP 3: Get referrer's account
+   */
+  const referrerAccount = await findAccountByUserId(
+    referrerProfile.userId.toString(),
+    session
+  );
+
+  if (!referrerAccount) {
+    throw new AppError(
+      "Referrer account not found",
+      HttpStatus.NOT_FOUND
+    );
+  }
+
+  /**
+   * STEP 4: Credit referrer's account
+   */
+  await incrementAccountBalance(
+    referrerAccount._id.toString(),
+    amount,
+    session
+  );
+
+  /**
+   * STEP 5: Create referral transaction record
+   */
+  await createAccountTransaction(
+    {
+      userId: referrerProfile.userId,
+      accountId: referrerAccount._id,
+      type: "credit",
+      amount: 500,
+      source: "referral",
+      status: "successful",
+      currency,
+      reference: `REF-${reference}`,
+      meta: {
+        referredUserId,
+        originalTxRef: reference,
+      },
+    },
+    session
+  );
+
+  /**
+   * STEP 6: Lock reward (VERY IMPORTANT)
+   * Prevents future deposits from triggering reward again
+   */
+  await Referrals.updateOne(
+    { _id: referrerProfile._id },
+    { $set: { firstDepositRewarded: true } },
+    { session }
+  );
+};
 
 
 

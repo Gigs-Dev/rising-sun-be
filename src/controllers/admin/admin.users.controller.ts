@@ -19,7 +19,7 @@ export const getUsers = async (req: Request, res: Response) => {
 
     const [users, totalUsers, activeUsers, bannedUsers] =
       await Promise.all([
-        User.find(filter).select('-password'),
+        User.find(filter).sort({ createdAt: -1 }).select('-password'),
         User.countDocuments(),
         User.countDocuments({ isBanned: false }),
         User.countDocuments({ isBanned: true }),

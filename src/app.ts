@@ -21,9 +21,18 @@ import transactionRouter from './routes/transaction.route';
 import gameRouter from './routes/games.route';
 import adminRouter from './routes/admin/admin.transaction.route';
 import adminUsersRoute from './routes/admin/admin.users.route';
+import webhookRouter from './routes/webhook';
 
 
 const app = express();
+
+app.use(
+  '/webhooks/flutterwave',
+  express.raw({ type: 'application/json' })
+);
+
+app.use('/webhooks', webhookRouter);
+// app.use('/webhooks/flutterwave', ipWhitelistMiddleware);
 
 // middlewares
 app.use(cookieParser())

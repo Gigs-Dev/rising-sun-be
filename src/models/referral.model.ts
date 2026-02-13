@@ -6,7 +6,6 @@ const referralSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      unique: true,
     },
     referralCode: {
       type: String,
@@ -16,6 +15,10 @@ const referralSchema = new Schema(
     referrals: {
       type: [String], 
       default: [],
+    },
+    firstDepositRewarded: {
+      type: Boolean,
+      default: false
     },
     referralAmt: {
       type: Number,

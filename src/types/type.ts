@@ -1,4 +1,4 @@
-import { Document } from "mongoose";
+import mongoose, { Document } from "mongoose";
 
 export interface UserType  extends Document {
     fullName: string;
@@ -66,4 +66,13 @@ export interface AdminTransactionQuery {
   endDate?: string;
   page?: number;
   limit?: number;
+}
+
+
+export interface HandleReferralFirstDepositParams {
+  referredUserId: string;
+  amount: number;
+  currency: string;
+  reference: string;
+  session: mongoose.ClientSession;
 }
