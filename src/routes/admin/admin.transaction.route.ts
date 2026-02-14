@@ -6,7 +6,7 @@ import { authorizeAdmin } from "../../middleware/auth.middleware";
 
 const adminRouter = Router()
 
-adminRouter.patch('/transactions/:id/approve', verifyUserToken, approveAndSendWithdrawal);
+adminRouter.patch('/transactions/:id/approve', verifyUserToken, authorizeAdmin, approveAndSendWithdrawal);
 
 adminRouter.patch('/transactions/:id/reject', verifyUserToken, authorizeAdmin, rejectWithdrawal)
 

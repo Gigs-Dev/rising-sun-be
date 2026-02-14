@@ -61,13 +61,15 @@ export class DebitTransactionService {
     try {
       flwResponse = await flw.Transfer.initiate({
         account_bank: transaction.meta.bankCode,
-        account_number: transaction.meta.accountNumber,
+        account_number: (transaction.meta.accountNumber).toString(),
         amount: transaction.amount,
         currency: transaction.currency,
         narration: 'User withdrawal',
         reference: transaction.reference, // 🔒 immutable internal ref
         callback_url: `${CALLBACK_URL}requests`,
       });
+
+      console.log('RESPONSE:', flwResponse)
     } catch (error: any) {
       console.log('ERROR:', error)
       await AccountTransaction.findByIdAndUpdate(transactionId, {
