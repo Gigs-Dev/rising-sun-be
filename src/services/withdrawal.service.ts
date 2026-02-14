@@ -66,9 +66,10 @@ export class DebitTransactionService {
         currency: transaction.currency,
         narration: 'User withdrawal',
         reference: transaction.reference, // 🔒 immutable internal ref
-        callback_url: `${CALLBACK_URL}/requests`,
+        callback_url: `${CALLBACK_URL}requests`,
       });
     } catch (error: any) {
+      console.log('ERROR:', error)
       await AccountTransaction.findByIdAndUpdate(transactionId, {
         $set: {
           status: 'failed',
