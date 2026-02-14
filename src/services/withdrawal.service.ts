@@ -41,7 +41,7 @@ export class DebitTransactionService {
     }
 
     /* -------------------- 3️⃣ Validate Bank Meta -------------------- */
-    if (!transaction.meta?.bankCode || !transaction.meta?.accountNum) {
+    if (!transaction.meta?.bankCode || !transaction.meta?.accountNumber) {
       await AccountTransaction.findByIdAndUpdate(transactionId, {
         $set: {
           status: 'failed',
@@ -61,7 +61,7 @@ export class DebitTransactionService {
     try {
       flwResponse = await flw.Transfer.initiate({
         account_bank: transaction.meta.bankCode,
-        account_number: transaction.meta.accountNum,
+        account_number: transaction.meta.accountNumber,
         amount: transaction.amount,
         currency: transaction.currency,
         narration: 'User withdrawal',
