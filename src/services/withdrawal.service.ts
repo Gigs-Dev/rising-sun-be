@@ -22,7 +22,7 @@ export class DebitTransactionService {
     const transaction = await AccountTransaction.findOneAndUpdate(
       {
         _id: transactionId,
-        status: { $in: ['pending', 'processing'] }, // ✅ allow retry
+        status: { $in: ['pending', 'processing'] }, // allow retry
       },
       {
         $set: {
@@ -40,19 +40,20 @@ export class DebitTransactionService {
       );
     }
 
-    /* -------------------- 3️⃣ Validate Bank Meta -------------------- */
+    /* -------------------- 3️⃣ Validate Transaction Data -------------------- */
     if (!transaction.meta?.bankCode || !transaction.meta?.accountNumber) {
       await AccountTransaction.findByIdAndUpdate(transactionId, {
         $set: {
           status: 'failed',
-          meta: {
-            ...transaction.meta,
-            failureReason: 'Invalid bank details',
-          },
+          'meta.failureReason': 'Invalid bank details',
         },
       });
 
       throw new AppError('Invalid bank details', HttpStatus.BAD_REQUEST);
+    }
+
+    if (transaction.amount <= 0) {
+      throw new AppError('Invalid transaction amount', HttpStatus.BAD_REQUEST);
     }
 
     /* -------------------- 4️⃣ Call Flutterwave -------------------- */
@@ -61,24 +62,19 @@ export class DebitTransactionService {
     try {
       flwResponse = await flw.Transfer.initiate({
         account_bank: transaction.meta.bankCode,
-        account_number: (transaction.meta.accountNumber).toString(),
+        account_number: transaction.meta.accountNumber.toString(),
         amount: transaction.amount,
         currency: transaction.currency,
         narration: 'User withdrawal',
-        reference: transaction.reference, // 🔒 immutable internal ref
+        reference: `${transaction.reference}-${Date.now()}`, // unique
         callback_url: `${CALLBACK_URL}requests`,
       });
-
-      console.log('RESPONSE:', flwResponse)
     } catch (error: any) {
-      console.log('ERROR:', error)
       await AccountTransaction.findByIdAndUpdate(transactionId, {
         $set: {
           status: 'failed',
-          meta: {
-            ...transaction.meta,
-            failureReason: error.message || 'Flutterwave network error',
-          },
+          'meta.failureReason':
+            error?.message || 'Flutterwave network error',
         },
       });
 
@@ -88,40 +84,37 @@ export class DebitTransactionService {
       );
     }
 
-    /* -------------------- 5️⃣ Handle Gateway Response -------------------- */
-    const flwStatus = flwResponse?.data?.status;
+    /* -------------------- 5️⃣ FIXED: Correct Status Handling -------------------- */
+    const apiStatus = flwResponse?.status;        // API request result
+    const transferStatus = flwResponse?.data?.status; // NEW | PENDING | SUCCESSFUL
 
-    if (['success', 'pending'].includes(flwStatus)) {
+    if (apiStatus === 'success') {
+      // Transfer successfully queued or processing
       return await AccountTransaction.findByIdAndUpdate(
         transactionId,
         {
           $set: {
-            status: 'queued', // ⏳ wait for webhook
-            meta: {
-              ...transaction.meta,
-              flwReference: flwResponse.data.reference,
-              fee: flwResponse.data.fee,
-            },
+            status: 'queued', // wait for webhook
+            'meta.flwReference': flwResponse.data.reference,
+            'meta.fee': flwResponse.data.fee,
+            'meta.transferStatus': transferStatus,
           },
         },
         { new: true }
       );
     }
 
-    /* -------------------- 6️⃣ Explicit Rejection -------------------- */
+    /* -------------------- 6️⃣ Explicit API Failure -------------------- */
     await AccountTransaction.findByIdAndUpdate(transactionId, {
       $set: {
         status: 'failed',
-        meta: {
-          ...transaction.meta,
-          failureReason:
-            flwResponse?.message || 'Flutterwave transfer rejected',
-        },
+        'meta.failureReason':
+          flwResponse?.message || 'Flutterwave transfer rejected',
       },
     });
 
     throw new AppError(
-      'Transfer request rejected by payment gateway',
+      flwResponse?.message || 'Transfer request rejected by payment gateway',
       HttpStatus.SERVICE_UNAVAILABLE
     );
   }
